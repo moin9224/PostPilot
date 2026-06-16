@@ -7,6 +7,12 @@ import {
   Flame,
   Sparkles,
   TrendingUp,
+  BarChart3,
+  Users,
+  Send,
+  Eye,
+  Heart,
+  MessageCircle,
 } from "lucide-react";
 import Button from "@/components/Common/Button";
 import Card from "@/components/Common/Card";
@@ -17,238 +23,371 @@ import { DASHBOARD_METRICS, POSTS, TREND_DATA } from "@/lib/mock";
 import { formatDate, formatTime, truncate } from "@/lib/utils";
 
 const TRENDING = [
-  { topic: "AI in the workplace", delta: "+312%" },
-  { topic: "Remote team culture", delta: "+184%" },
-  { topic: "Personal branding", delta: "+126%" },
-  { topic: "Founder lessons", delta: "+88%" },
-  { topic: "Hiring & retention", delta: "+64%" },
+  { topic: "AI in the workplace", delta: "+312%", icon: "🤖" },
+  { topic: "Remote team culture", delta: "+184%", icon: "🏢" },
+  { topic: "Personal branding", delta: "+126%", icon: "⭐" },
+  { topic: "Founder lessons", delta: "+88%", icon: "📚" },
+  { topic: "Hiring & retention", delta: "+64%", icon: "👥" },
 ];
 
 export default function DashboardHome() {
-  const upcoming = POSTS.filter((p) => p.status === "scheduled").slice(0, 4);
-  const recent = POSTS.filter((p) => p.status === "published").slice(0, 4);
+  const upcoming = POSTS.filter((p) => p.status === "scheduled").slice(0, 3);
+  const recent = POSTS.filter((p) => p.status === "published").slice(0, 3);
 
   return (
-    <div className="space-y-8">
-      {/* Hero strip */}
-      <section className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-ink p-7 text-white sm:p-9">
+    <div className="space-y-6">
+      {/* Welcome Hero Section */}
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-ink via-ink to-neutral-900 p-8 text-white md:p-10">
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-brand/30 blur-3xl"
+          className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-brand/20 blur-3xl"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -bottom-20 right-32 h-56 w-56 rounded-full bg-action/30 blur-3xl"
+          className="pointer-events-none absolute -bottom-32 left-1/4 h-72 w-72 rounded-full bg-action/20 blur-3xl"
         />
-        <div className="relative flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-          <div className="max-w-lg">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-[11px] font-medium text-white/90">
-              <Flame className="h-3 w-3 text-orange-300" />
-              On a 7-day streak
-            </span>
-            <h2 className="mt-4 text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">
-              Welcome back, John.
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-white/70">
-              Reach is up <span className="font-semibold text-white">+24%</span>{" "}
-              this month. You have <span className="font-semibold text-white">3 posts</span>{" "}
-              queued for this week.
-            </p>
-          </div>
-          <div className="flex w-full flex-shrink-0 items-center gap-2 sm:w-auto">
-            <Link href="/dashboard/calendar" className="flex-1 sm:flex-none">
-              <Button
-                variant="ghost"
-                className="w-full text-white hover:bg-white/10"
-              >
-                <Calendar className="h-4 w-4" />
-                Calendar
-              </Button>
-            </Link>
-            <Link href="/dashboard/content-generator" className="flex-1 sm:flex-none">
-              <Button className="w-full bg-white text-ink hover:bg-white/90">
-                <Sparkles className="h-4 w-4" />
-                New post
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
 
-      {/* Metrics */}
-      <section>
-        <div className="mb-4 flex items-end justify-between">
-          <div>
-            <SectionLabel>This month</SectionLabel>
-            <h3 className="mt-1 text-base font-semibold tracking-[-0.01em] text-ink">
-              Performance overview
-            </h3>
-          </div>
-          <Link
-            href="/dashboard/analytics"
-            className="inline-flex items-center gap-1 text-xs font-medium text-neutral-600 transition-colors hover:text-ink"
-          >
-            View analytics
-            <ArrowUpRight className="h-3 w-3" />
-          </Link>
-        </div>
-        <EngagementMetrics metrics={DASHBOARD_METRICS} />
-      </section>
-
-      {/* Chart + Trending */}
-      <section className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <SectionLabel>Last 7 days</SectionLabel>
-              <h3 className="mt-1 text-base font-semibold tracking-[-0.01em] text-ink">
-                Reach trend
-              </h3>
+        <div className="relative z-10">
+          <div className="mb-6 flex items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand/20">
+              <Flame className="h-5 w-5 text-orange-300" />
             </div>
-            <div className="flex items-center gap-1 rounded-md bg-neutral-100 p-0.5 text-xs font-medium">
-              <button className="rounded bg-white px-2.5 py-1 text-ink shadow-sm">
-                7d
-              </button>
-              <button className="px-2.5 py-1 text-neutral-500">30d</button>
-              <button className="px-2.5 py-1 text-neutral-500">90d</button>
+            <span className="text-sm font-medium text-white/80">
+              On a 7-day streak 🔥
+            </span>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 md:items-end">
+            <div>
+              <h1 className="text-4xl font-bold leading-tight tracking-[-0.02em] md:text-5xl">
+                Welcome back.
+              </h1>
+              <p className="mt-3 text-lg text-white/70">
+                Your reach is up <span className="font-semibold text-white">+24%</span> this month with
+                <span className="font-semibold text-white"> 3 posts</span> queued.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <Link href="/dashboard/content-generator" className="flex-1">
+                <Button className="w-full bg-white text-ink hover:bg-white/90">
+                  <Sparkles className="h-4 w-4" />
+                  Generate post
+                </Button>
+              </Link>
+              <Link href="/dashboard/calendar">
+                <Button variant="ghost" className="text-white hover:bg-white/10">
+                  <Calendar className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Key Stats Grid */}
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Posts this month"
+          value="18"
+          change="+12.5%"
+          icon={<Send className="h-5 w-5" />}
+          trend="up"
+        />
+        <StatCard
+          label="Total reach"
+          value="182K"
+          change="+24%"
+          icon={<Eye className="h-5 w-5" />}
+          trend="up"
+        />
+        <StatCard
+          label="Avg engagement"
+          value="4.8%"
+          change="+3.2%"
+          icon={<Heart className="h-5 w-5" />}
+          trend="up"
+        />
+        <StatCard
+          label="New followers"
+          value="1,204"
+          change="-2.4%"
+          icon={<Users className="h-5 w-5" />}
+          trend="down"
+        />
+      </section>
+
+      {/* Chart and Trending Section */}
+      <section className="grid gap-5 lg:grid-cols-3">
+        {/* Performance Chart */}
+        <Card className="lg:col-span-2">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-semibold text-ink">
+                Reach performance
+              </h3>
+              <p className="mt-1 text-xs text-neutral-500">
+                Track your reach over time
+              </p>
+            </div>
+            <div className="flex gap-1 rounded-lg bg-neutral-100 p-1">
+              {["7d", "30d", "90d"].map((period) => (
+                <button
+                  key={period}
+                  className={`rounded px-3 py-1.5 text-xs font-medium transition-all ${
+                    period === "7d"
+                      ? "bg-white text-ink shadow-sm"
+                      : "text-neutral-500 hover:text-ink"
+                  }`}
+                >
+                  {period}
+                </button>
+              ))}
             </div>
           </div>
           <PerformanceChart data={TREND_DATA} />
         </Card>
 
+        {/* Trending Topics */}
         <Card>
-          <div className="mb-5 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between">
             <div>
-              <SectionLabel>Trending in your niche</SectionLabel>
-              <h3 className="mt-1 text-base font-semibold tracking-[-0.01em] text-ink">
-                Topics
+              <h3 className="text-base font-semibold text-ink">
+                Trending topics
               </h3>
+              <p className="mt-1 text-xs text-neutral-500">
+                In your industry
+              </p>
             </div>
-            <TrendingUp className="h-4 w-4 text-success" />
+            <TrendingUp className="h-5 w-5 text-success" />
           </div>
-          <ul className="-mx-2 space-y-0.5">
-            {TRENDING.map((t, i) => (
-              <li key={t.topic}>
-                <button className="group flex w-full items-center gap-3 rounded-md px-2 py-2 text-left transition-colors hover:bg-neutral-50">
-                  <span className="flex h-5 w-5 items-center justify-center rounded text-[11px] font-mono font-semibold text-neutral-400">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="flex-1 text-sm text-ink">{t.topic}</span>
-                  <span className="text-[11px] font-semibold text-success">
-                    {t.delta}
-                  </span>
-                </button>
-              </li>
+
+          <div className="space-y-2">
+            {TRENDING.map((topic, index) => (
+              <button
+                key={topic.topic}
+                className="group flex w-full items-center gap-3 rounded-lg p-3 transition-colors hover:bg-neutral-50"
+              >
+                <span className="text-lg">{topic.icon}</span>
+                <div className="flex-1 text-left">
+                  <p className="text-sm font-medium text-ink group-hover:text-brand">
+                    {topic.topic}
+                  </p>
+                  <p className="text-[11px] text-neutral-500">
+                    Rank #{index + 1}
+                  </p>
+                </div>
+                <span className="text-sm font-semibold text-success">
+                  {topic.delta}
+                </span>
+              </button>
             ))}
-          </ul>
+          </div>
+
           <Link
             href="/dashboard/content-generator"
-            className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-neutral-600 transition-colors hover:text-ink"
+            className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-brand transition-colors hover:text-action"
           >
-            Draft a post about these
-            <ArrowRight className="h-3 w-3" />
+            Generate post
+            <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Card>
       </section>
 
-      {/* Upcoming + Recent */}
-      <section className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      {/* Upcoming and Recent Posts */}
+      <section className="grid gap-5 lg:grid-cols-2">
+        {/* Upcoming Posts */}
         <Card padded={false}>
-          <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4">
-            <div>
-              <SectionLabel>Queue</SectionLabel>
-              <h3 className="mt-1 text-base font-semibold tracking-[-0.01em] text-ink">
-                Upcoming posts
-              </h3>
-            </div>
-            <Link
-              href="/dashboard/calendar"
-              className="text-xs font-medium text-neutral-600 transition-colors hover:text-ink"
-            >
-              View calendar →
-            </Link>
-          </div>
-          <ul className="divide-y divide-neutral-100">
-            {upcoming.map((p) => (
-              <li
-                key={p.id}
-                className="flex items-start gap-4 px-6 py-4 transition-colors hover:bg-neutral-50/50"
-              >
-                <div className="flex w-12 flex-shrink-0 flex-col items-center rounded-lg border border-neutral-200 bg-white py-1.5 text-center">
-                  <Clock className="h-3 w-3 text-neutral-400" />
-                  <span className="mt-0.5 text-[10px] font-medium text-neutral-600">
-                    {p.scheduledFor && formatTime(p.scheduledFor)}
-                  </span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm leading-relaxed text-ink">
-                    {truncate(p.text, 84)}
-                  </p>
-                  <p className="mt-1.5 text-[11px] text-neutral-500">
-                    {p.scheduledFor && formatDate(p.scheduledFor)} · {p.tone}
-                  </p>
-                </div>
-                <StatusBadge status={p.status} />
-              </li>
-            ))}
-          </ul>
-        </Card>
-
-        <Card padded={false}>
-          <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4">
-            <div>
-              <SectionLabel>Activity</SectionLabel>
-              <h3 className="mt-1 text-base font-semibold tracking-[-0.01em] text-ink">
-                Recent posts
-              </h3>
-            </div>
-            <Link
-              href="/dashboard/content-library"
-              className="text-xs font-medium text-neutral-600 transition-colors hover:text-ink"
-            >
-              View all →
-            </Link>
-          </div>
-          <ul className="divide-y divide-neutral-100">
-            {recent.map((p) => (
-              <li
-                key={p.id}
-                className="px-6 py-4 transition-colors hover:bg-neutral-50/50"
-              >
-                <p className="text-sm leading-relaxed text-ink">
-                  {truncate(p.text, 96)}
+          <div className="border-b border-neutral-100 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-ink">
+                  Scheduled posts
+                </h3>
+                <p className="mt-1 text-xs text-neutral-500">
+                  Queue for this week
                 </p>
-                <div className="mt-2 flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-[11px] text-neutral-500">
-                    <span>
-                      <span className="font-semibold text-ink">
-                        {p.stats?.impressions.toLocaleString()}
-                      </span>{" "}
-                      impressions
-                    </span>
-                    <span className="text-neutral-300">·</span>
-                    <span>
-                      <span className="font-semibold text-success">
-                        {p.stats?.engagementRate}%
-                      </span>{" "}
-                      engagement
+              </div>
+              <Link
+                href="/dashboard/calendar"
+                className="text-xs font-medium text-brand transition-colors hover:text-action"
+              >
+                View all →
+              </Link>
+            </div>
+          </div>
+
+          {upcoming.length > 0 ? (
+            <ul className="divide-y divide-neutral-100">
+              {upcoming.map((post) => (
+                <li
+                  key={post.id}
+                  className="group flex items-start gap-4 px-6 py-4 transition-colors hover:bg-neutral-50/70"
+                >
+                  <div className="flex flex-shrink-0 flex-col items-center rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-2">
+                    <Clock className="h-3.5 w-3.5 text-neutral-400" />
+                    <span className="mt-1 text-[9px] font-semibold text-neutral-600">
+                      {post.scheduledFor && formatTime(post.scheduledFor)}
                     </span>
                   </div>
-                  <StatusBadge status={p.status} />
-                </div>
-              </li>
-            ))}
-          </ul>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm leading-relaxed text-ink line-clamp-2">
+                      {truncate(post.text, 80)}
+                    </p>
+                    <div className="mt-2 flex items-center gap-2 text-[11px] text-neutral-500">
+                      <span>
+                        {post.scheduledFor && formatDate(post.scheduledFor)}
+                      </span>
+                      <span>•</span>
+                      <span className="inline-block rounded-full bg-neutral-100 px-2 py-0.5 text-neutral-700">
+                        {post.tone}
+                      </span>
+                    </div>
+                  </div>
+                  <StatusBadge status={post.status} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="px-6 py-8 text-center">
+              <p className="text-sm text-neutral-500">No scheduled posts yet</p>
+              <Link href="/dashboard/content-generator">
+                <Button size="sm" className="mt-3 mx-auto w-fit">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Create one now
+                </Button>
+              </Link>
+            </div>
+          )}
         </Card>
+
+        {/* Recent Posts */}
+        <Card padded={false}>
+          <div className="border-b border-neutral-100 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-ink">
+                  Recent activity
+                </h3>
+                <p className="mt-1 text-xs text-neutral-500">
+                  Published posts
+                </p>
+              </div>
+              <Link
+                href="/dashboard/analytics"
+                className="text-xs font-medium text-brand transition-colors hover:text-action"
+              >
+                View all →
+              </Link>
+            </div>
+          </div>
+
+          {recent.length > 0 ? (
+            <ul className="divide-y divide-neutral-100">
+              {recent.map((post) => (
+                <li
+                  key={post.id}
+                  className="group flex flex-col px-6 py-4 transition-colors hover:bg-neutral-50/70"
+                >
+                  <p className="text-sm leading-relaxed text-ink line-clamp-2">
+                    {truncate(post.text, 100)}
+                  </p>
+                  <div className="mt-3 flex items-center justify-between">
+                    <div className="flex items-center gap-4 text-[11px] text-neutral-600">
+                      <span className="flex items-center gap-1">
+                        <Eye className="h-3.5 w-3.5" />
+                        {post.stats?.impressions.toLocaleString() || "0"}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Heart className="h-3.5 w-3.5 text-rose-500" />
+                        {Math.round(
+                          (post.stats?.impressions || 0) * 0.048
+                        ).toLocaleString()}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MessageCircle className="h-3.5 w-3.5" />
+                        {Math.round(
+                          (post.stats?.impressions || 0) * 0.015
+                        ).toLocaleString()}
+                      </span>
+                    </div>
+                    <span className="rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-semibold text-success">
+                      {post.stats?.engagementRate}% eng.
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="px-6 py-8 text-center">
+              <p className="text-sm text-neutral-500">No published posts yet</p>
+            </div>
+          )}
+        </Card>
+      </section>
+
+      {/* CTA Section */}
+      <section className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-gradient-to-br from-neutral-50 to-white p-8">
+        <div className="relative z-10">
+          <h3 className="text-lg font-semibold text-ink">
+            Ready to maximize your reach?
+          </h3>
+          <p className="mt-2 text-sm text-neutral-600">
+            Use our AI-powered generator to create posts that resonate with your audience.
+          </p>
+          <div className="mt-4 flex gap-3">
+            <Link href="/dashboard/content-generator">
+              <Button className="bg-ink hover:bg-neutral-800">
+                <Sparkles className="h-4 w-4" />
+                Generate post
+              </Button>
+            </Link>
+            <Link href="/dashboard/reach-debugger">
+              <Button variant="secondary">
+                <BarChart3 className="h-4 w-4" />
+                Analyze reach
+              </Button>
+            </Link>
+          </div>
+        </div>
       </section>
     </div>
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+interface StatCardProps {
+  label: string;
+  value: string;
+  change: string;
+  icon: React.ReactNode;
+  trend: "up" | "down";
+}
+
+function StatCard({ label, value, change, icon, trend }: StatCardProps) {
   return (
-    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
-      {children}
-    </span>
+    <Card>
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-xs font-medium text-neutral-500">{label}</p>
+          <p className="mt-2 text-2xl font-bold text-ink">{value}</p>
+          <p
+            className={`mt-2 text-xs font-medium ${
+              trend === "up" ? "text-success" : "text-rose-600"
+            }`}
+          >
+            {change} vs last period
+          </p>
+        </div>
+        <div
+          className={`rounded-lg p-3 ${
+            trend === "up"
+              ? "bg-success/10 text-success"
+              : "bg-rose-50 text-rose-600"
+          }`}
+        >
+          {icon}
+        </div>
+      </div>
+    </Card>
   );
 }
