@@ -198,7 +198,7 @@ export default function ContentGeneratorPage() {
           {source === "youtube" && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-2.5 py-1 font-medium">
               <Youtube className="h-3 w-3 text-red-600" />
-              Gemini reads · Claude writes
+              Video to post
             </span>
           )}
           <span className="hidden sm:inline">·</span>

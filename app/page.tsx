@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
@@ -50,9 +49,11 @@ export default function LandingPage() {
 
 /* ---------- Header ---------- */
 function Header() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-200/70 bg-[#FAFAF9]/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Logo />
         <nav className="hidden items-center gap-8 text-sm text-neutral-600 md:flex">
           <a href="#features" className="transition-colors hover:text-ink">
@@ -68,7 +69,7 @@ function Header() {
             FAQ
           </a>
         </nav>
-        <div className="flex items-center gap-1.5">
+        <div className="hidden items-center gap-1.5 sm:flex">
           <Link href="/auth/login">
             <Button variant="ghost" size="sm">
               Sign in
@@ -81,7 +82,38 @@ function Header() {
             </Button>
           </Link>
         </div>
+        <button
+          onClick={() => setMobileOpen((v) => !v)}
+          className="sm:hidden rounded-md p-2 text-neutral-700 hover:bg-neutral-100"
+          aria-label="Open menu"
+        >
+          {mobileOpen ? (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          )}
+        </button>
       </div>
+      {mobileOpen && (
+        <div className="border-t border-neutral-200 bg-white px-4 py-3 sm:hidden">
+          <nav className="flex flex-col gap-1 text-sm text-neutral-700">
+            <a href="#features" onClick={() => setMobileOpen(false)} className="py-2">Product</a>
+            <a href="#workflow" onClick={() => setMobileOpen(false)} className="py-2">How it works</a>
+            <a href="#pricing" onClick={() => setMobileOpen(false)} className="py-2">Pricing</a>
+            <a href="#faq" onClick={() => setMobileOpen(false)} className="py-2">FAQ</a>
+          </nav>
+          <div className="mt-3 flex flex-col gap-2 border-t border-neutral-100 pt-3">
+            <Link href="/auth/login" onClick={() => setMobileOpen(false)}>
+              <Button variant="secondary" size="sm" className="w-full">Sign in</Button>
+            </Link>
+            <Link href="/auth/signup" onClick={() => setMobileOpen(false)}>
+              <Button size="sm" className="w-full bg-ink hover:bg-neutral-800">
+                Get started <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
@@ -176,15 +208,8 @@ function ProductPreview() {
       {/* Sidebar */}
       <div className="hidden flex-col gap-1 border-r border-neutral-200 bg-white p-4 md:flex">
         <div className="flex items-center gap-2 px-2 pb-3">
-          <Image
-            src="/Final_logo.png"
-            alt="PostPilot"
-            width={28}
-            height={28}
-            className="h-7 w-7 object-contain"
-          />
           <span className="text-sm font-semibold tracking-tight">
-            PostPilot
+            Post<span className="text-brand">Pilot</span>
           </span>
         </div>
         {[

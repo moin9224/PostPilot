@@ -131,7 +131,7 @@ export default function GeneratorPanel({
       </Button>
 
       <p className="-mt-2 text-center text-[11px] text-neutral-400">
-        Powered by OpenAI · Uses 1 credit per generation
+        Uses 1 credit per generation
       </p>
     </div>
   );
