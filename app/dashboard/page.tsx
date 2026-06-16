@@ -13,6 +13,8 @@ import {
   Eye,
   Heart,
   MessageCircle,
+  Linkedin,
+  CheckCircle2,
 } from "lucide-react";
 import Button from "@/components/Common/Button";
 import Card from "@/components/Common/Card";
@@ -82,6 +84,27 @@ export default function DashboardHome() {
               </Link>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* LinkedIn Connection Card */}
+      <section className="rounded-xl border border-blue-200 bg-blue-50/50 p-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
+              <Linkedin className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-ink">LinkedIn Connection</h3>
+              <p className="text-xs text-neutral-600">Connect your account to post and track analytics</p>
+            </div>
+          </div>
+          <a href="/api/auth/linkedin/authorize">
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <CheckCircle2 className="h-4 w-4" />
+              Connect LinkedIn
+            </Button>
+          </a>
         </div>
       </section>
 
