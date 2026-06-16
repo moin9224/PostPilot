@@ -48,6 +48,9 @@ export interface GeneratedPost {
   characterCount: number;
   estimatedReach: number;
   hashtags: string[];
+  suggestedBestTime?: string;
+  tone?: string;
+  industry?: string;
 }
 
 export interface Competitor {
