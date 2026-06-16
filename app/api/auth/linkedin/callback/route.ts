@@ -1,99 +1,120 @@
-import { redirect } from "next/navigation";
-import { fail, ok, route } from "@/lib/api";
+import { NextResponse } from "next/server";
+import { fail } from "@/lib/api";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { z } from "zod";
-
-const Query = z.object({
-  code: z.string(),
-  state: z.string(),
-  error: z.string().optional(),
-});
 
 /**
  * LinkedIn OAuth callback handler.
  *
+ * Uses OpenID Connect (openid profile email scopes)
  * Flow:
- * 1. User clicks "Sign in with LinkedIn"
- * 2. Gets redirected to LinkedIn authorization page
- * 3. User grants permission
- * 4. LinkedIn redirects here with `code` and `state`
- * 5. We exchange `code` for access token
- * 6. We store token securely in database
- * 7. User is logged in automatically
+ * 1. User approves on LinkedIn
+ * 2. LinkedIn redirects here with `code`
+ * 3. Exchange `code` for access_token
+ * 4. Fetch profile from /v2/userinfo (OpenID Connect endpoint)
+ * 5. Store token + profile in database
+ * 6. Redirect to dashboard
  */
-export const GET = route(async (request) => {
-  const url = new URL(request.url);
-  const query = Query.parse(Object.fromEntries(url.searchParams));
+export const GET = async (request: Request) => {
+  try {
+    const url = new URL(request.url);
+    const code = url.searchParams.get("code");
+    const errorParam = url.searchParams.get("error");
+    const errorDesc = url.searchParams.get("error_description");
 
-  // Handle LinkedIn errors
-  if (query.error) {
-    return fail(400, `LinkedIn error: ${query.error}`);
+    if (errorParam) {
+      return fail(400, `LinkedIn error: ${errorParam} - ${errorDesc}`);
+    }
+
+    if (!code) {
+      return fail(400, "No authorization code received from LinkedIn");
+    }
+
+    const redirectUri = `${url.origin}/api/auth/linkedin/callback`;
+    const clientId = process.env.LINKEDIN_CLIENT_ID || "";
+    const clientSecret = process.env.LINKEDIN_CLIENT_SECRET || "";
+
+    if (!clientId || !clientSecret) {
+      return fail(500, "LinkedIn credentials not configured");
+    }
+
+    // Exchange authorization code for access token
+    const tokenResponse = await fetch("https://www.linkedin.com/oauth/v2/accessToken", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: redirectUri,
+        client_id: clientId,
+        client_secret: clientSecret,
+      }),
+    });
+
+    const tokenText = await tokenResponse.text();
+
+    if (!tokenResponse.ok) {
+      console.error("LinkedIn token exchange failed:", tokenText);
+      return fail(400, `Failed to exchange authorization code: ${tokenText}`);
+    }
+
+    const tokenData = JSON.parse(tokenText);
+    const { access_token, expires_in, refresh_token, id_token } = tokenData;
+
+    if (!access_token) {
+      return fail(400, "No access token returned from LinkedIn");
+    }
+
+    // Fetch user profile using OpenID Connect userinfo endpoint
+    const profileResponse = await fetch("https://api.linkedin.com/v2/userinfo", {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+
+    if (!profileResponse.ok) {
+      const errText = await profileResponse.text();
+      console.error("LinkedIn profile fetch failed:", errText);
+      return fail(400, `Failed to fetch LinkedIn profile: ${errText}`);
+    }
+
+    const profile = await profileResponse.json();
+    // OpenID Connect returns: sub, name, given_name, family_name, picture, email, email_verified, locale
+    const linkedinId = profile.sub;
+    const profileName = profile.name || `${profile.given_name || ""} ${profile.family_name || ""}`.trim();
+    const profileEmail = profile.email;
+    const profilePicture = profile.picture;
+
+    // Store LinkedIn account in database (if user is logged in)
+    const supabase = await getServerSupabase();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      const { error: insertError } = await supabase
+        .from("user_linkedin_accounts")
+        .upsert(
+          {
+            user_id: user.id,
+            linkedin_id: linkedinId,
+            profile_name: profileName,
+            profile_email: profileEmail,
+            profile_picture: profilePicture,
+            access_token,
+            refresh_token: refresh_token || null,
+            id_token: id_token || null,
+            token_expires_at: new Date(Date.now() + (expires_in || 5184000) * 1000).toISOString(),
+            is_active: true,
+          },
+          { onConflict: "user_id,linkedin_id" }
+        );
+
+      if (insertError) {
+        console.error("Failed to store LinkedIn account:", insertError);
+        // Continue anyway - redirect to dashboard
+      }
+    }
+
+    // Redirect to dashboard with success param
+    return NextResponse.redirect(new URL("/dashboard?linkedin=connected", url.origin));
+  } catch (err) {
+    console.error("LinkedIn callback error:", err);
+    return fail(500, `LinkedIn OAuth failed: ${err instanceof Error ? err.message : "Unknown error"}`);
   }
-
-  const supabase = await getServerSupabase();
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-  if (!session || sessionError) {
-    return fail(401, "No session found. Please sign up first.");
-  }
-
-  // Exchange authorization code for access token
-  const callbackUrl = new URL(request.url);
-  const redirectUri = `${callbackUrl.origin}/api/auth/linkedin/callback`;
-
-  const tokenResponse = await fetch("https://www.linkedin.com/oauth/v2/accessToken", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "authorization_code",
-      code: query.code,
-      redirect_uri: redirectUri,
-      client_id: process.env.LINKEDIN_CLIENT_ID || "",
-      client_secret: process.env.LINKEDIN_CLIENT_SECRET || "",
-    }),
-  });
-
-  if (!tokenResponse.ok) {
-    return fail(400, "Failed to exchange authorization code for access token");
-  }
-
-  const tokenData = await tokenResponse.json();
-  const { access_token, expires_in, refresh_token } = tokenData;
-
-  // Get LinkedIn profile info
-  const profileResponse = await fetch("https://api.linkedin.com/rest/me", {
-    headers: { Authorization: `Bearer ${access_token}` },
-  });
-
-  if (!profileResponse.ok) {
-    return fail(400, "Failed to fetch LinkedIn profile");
-  }
-
-  const profile = await profileResponse.json();
-  const linkedinId = profile.id;
-  const profileName = `${profile.localizedFirstName} ${profile.localizedLastName}`;
-
-  // Store LinkedIn account in database
-  const { error: insertError } = await supabase
-    .from("user_linkedin_accounts")
-    .upsert(
-      {
-        user_id: session.user.id,
-        linkedin_id: linkedinId,
-        profile_name: profileName,
-        access_token: access_token, // Should be encrypted in production
-        refresh_token: refresh_token,
-        token_expires_at: new Date(Date.now() + expires_in * 1000).toISOString(),
-        is_active: true,
-      },
-      { onConflict: "user_id,linkedin_id" }
-    );
-
-  if (insertError) {
-    console.error("Failed to store LinkedIn account:", insertError);
-    return fail(500, "Failed to store LinkedIn account");
-  }
-
-  // Redirect to dashboard
-  return redirect("/dashboard");
-});
+};
