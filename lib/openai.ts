@@ -91,8 +91,21 @@ export async function generateLinkedInPost(
       suggestedBestTime: parsed.suggestedBestTime || "Tue 9:00 AM",
     };
   } catch (err: any) {
+    console.error("[openai] generation error:", {
+      status: err?.status,
+      code: err?.code,
+      message: err?.message,
+      type: err?.type,
+    });
+    if (err?.status === 401) {
+      throw new ApiError(401, "OpenAI API key is invalid. Check Vercel environment variables.");
+    }
     if (err?.status === 429) {
-      throw new ApiError(429, "AI service is busy — please retry shortly.");
+      const detail = err?.message || "rate limit exceeded";
+      throw new ApiError(429, `OpenAI: ${detail}`);
+    }
+    if (err?.status === 402 || err?.code === "insufficient_quota") {
+      throw new ApiError(402, "OpenAI API quota exceeded. Add credits to your OpenAI account.");
     }
     if (err instanceof ApiError) throw err;
     throw new ApiError(502, `AI generation failed: ${err?.message || "Unknown error"}`);

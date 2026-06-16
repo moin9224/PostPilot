@@ -193,7 +193,7 @@ export default function ContentGeneratorPage() {
         <div className="flex flex-wrap items-center gap-2 text-[11px] text-neutral-500">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-2.5 py-1 font-medium">
             <span className="h-1.5 w-1.5 rounded-full bg-success" />
-            Claude Sonnet 4.6
+            OpenAI GPT-4o
           </span>
           {source === "youtube" && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-2.5 py-1 font-medium">
