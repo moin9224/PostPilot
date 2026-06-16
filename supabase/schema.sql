@@ -5,6 +5,11 @@
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------
+-- Enable pgcrypto extension for encryption
+-- ---------------------------------------------------------------------------
+create extension if not exists pgcrypto;
+
+-- ---------------------------------------------------------------------------
 -- Tables
 -- ---------------------------------------------------------------------------
 create table if not exists public.profiles (
@@ -14,8 +19,6 @@ create table if not exists public.profiles (
   company text,
   industry text,
   profile_picture_url text,
-  linkedin_profile_url text,
-  linkedin_access_token text,
   subscription_plan text not null default 'free'
     check (subscription_plan in ('free', 'starter', 'pro', 'agency')),
   subscription_started_at timestamptz,
@@ -122,6 +125,109 @@ create table if not exists public.content_library (
 );
 
 -- ---------------------------------------------------------------------------
+-- LinkedIn OAuth & Integration Tables
+-- ---------------------------------------------------------------------------
+create table if not exists public.user_linkedin_accounts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+
+  -- LinkedIn identity
+  linkedin_id varchar unique not null,
+  linkedin_handle varchar,
+  profile_url varchar,
+
+  -- OAuth tokens (encrypted at rest)
+  access_token text not null,
+  refresh_token text,
+  token_expires_at timestamptz not null,
+
+  -- Profile snapshot (cached, refreshed monthly)
+  profile_name varchar,
+  profile_headline varchar,
+  profile_photo_url varchar,
+  followers_count int,
+
+  -- Connection status
+  connected_at timestamptz default now(),
+  last_sync_at timestamptz,
+  is_active boolean default true,
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+
+  unique (user_id, linkedin_id)
+);
+
+create table if not exists public.linkedin_posts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  linkedin_account_id uuid not null references public.user_linkedin_accounts(id) on delete cascade,
+
+  -- LinkedIn post identifier
+  linkedin_id varchar unique,
+
+  -- Post content
+  text text not null,
+  hashtags text[],
+
+  -- Post status and timestamps
+  posted_at timestamptz,
+  status varchar not null default 'published'
+    check (status in ('published', 'scheduled', 'draft')),
+
+  -- Analytics (refreshed daily)
+  impressions int default 0,
+  likes int default 0,
+  comments int default 0,
+  shares int default 0,
+  clicks int default 0,
+  engagement_rate float,
+
+  -- Metadata
+  tone varchar,
+  industry varchar,
+  estimated_reach int,
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.scheduled_posts_v2 (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  linkedin_account_id uuid not null references public.user_linkedin_accounts(id) on delete cascade,
+
+  -- Post content
+  text text not null,
+  hashtags text[],
+
+  -- Scheduling
+  scheduled_for timestamptz not null,
+  status varchar not null default 'scheduled'
+    check (status in ('scheduled', 'published', 'failed')),
+
+  -- Publishing metadata
+  published_at timestamptz,
+  linkedin_post_id varchar,
+  publish_error text,
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.billing_usage (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  date date not null default current_date,
+  posts_generated int default 0,
+  api_calls int default 0,
+  storage_used_mb numeric default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (user_id, date)
+);
+
+-- ---------------------------------------------------------------------------
 -- Indexes for frequently queried columns
 -- ---------------------------------------------------------------------------
 create index if not exists idx_generated_posts_user on public.generated_posts(user_id);
@@ -134,6 +240,18 @@ create index if not exists idx_competitor_posts_competitor on public.competitor_
 create index if not exists idx_reach_analysis_user on public.reach_analysis(user_id, analyzed_at desc);
 create index if not exists idx_team_members_user on public.team_members(user_id);
 create index if not exists idx_content_library_user on public.content_library(user_id);
+
+-- LinkedIn tables indexes
+create index if not exists idx_user_linkedin_accounts_user on public.user_linkedin_accounts(user_id);
+create index if not exists idx_user_linkedin_accounts_active on public.user_linkedin_accounts(user_id, is_active);
+create index if not exists idx_linkedin_posts_user on public.linkedin_posts(user_id);
+create index if not exists idx_linkedin_posts_account on public.linkedin_posts(linkedin_account_id);
+create index if not exists idx_linkedin_posts_status on public.linkedin_posts(user_id, status);
+create index if not exists idx_linkedin_posts_posted on public.linkedin_posts(user_id, posted_at desc);
+create index if not exists idx_scheduled_posts_v2_user on public.scheduled_posts_v2(user_id);
+create index if not exists idx_scheduled_posts_v2_due on public.scheduled_posts_v2(scheduled_for) where status = 'scheduled';
+create index if not exists idx_scheduled_posts_v2_account on public.scheduled_posts_v2(linkedin_account_id);
+create index if not exists idx_billing_usage_user on public.billing_usage(user_id, date desc);
 
 -- ---------------------------------------------------------------------------
 -- updated_at trigger
@@ -151,7 +269,8 @@ declare t text;
 begin
   foreach t in array array[
     'profiles', 'generated_posts', 'scheduled_posts',
-    'competitors', 'content_library'
+    'competitors', 'content_library', 'user_linkedin_accounts',
+    'linkedin_posts', 'scheduled_posts_v2', 'billing_usage'
   ] loop
     execute format('drop trigger if exists trg_%I_updated on public.%I;', t, t);
     execute format(
@@ -189,6 +308,10 @@ alter table public.competitor_posts enable row level security;
 alter table public.reach_analysis enable row level security;
 alter table public.team_members enable row level security;
 alter table public.content_library enable row level security;
+alter table public.user_linkedin_accounts enable row level security;
+alter table public.linkedin_posts enable row level security;
+alter table public.scheduled_posts_v2 enable row level security;
+alter table public.billing_usage enable row level security;
 
 -- profiles: a user owns the row whose id == auth.uid()
 drop policy if exists "profiles_select_own" on public.profiles;
@@ -247,6 +370,26 @@ create policy "tm_all_own" on public.team_members
 -- content_library
 drop policy if exists "cl_all_own" on public.content_library;
 create policy "cl_all_own" on public.content_library
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- user_linkedin_accounts
+drop policy if exists "ula_all_own" on public.user_linkedin_accounts;
+create policy "ula_all_own" on public.user_linkedin_accounts
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- linkedin_posts
+drop policy if exists "lp_all_own" on public.linkedin_posts;
+create policy "lp_all_own" on public.linkedin_posts
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- scheduled_posts_v2
+drop policy if exists "spv2_all_own" on public.scheduled_posts_v2;
+create policy "spv2_all_own" on public.scheduled_posts_v2
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- billing_usage
+drop policy if exists "bu_all_own" on public.billing_usage;
+create policy "bu_all_own" on public.billing_usage
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- ---------------------------------------------------------------------------
