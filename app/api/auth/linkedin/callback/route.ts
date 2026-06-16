@@ -38,13 +38,16 @@ export const GET = route(async (request) => {
   }
 
   // Exchange authorization code for access token
+  const callbackUrl = new URL(request.url);
+  const redirectUri = `${callbackUrl.origin}/api/auth/linkedin/callback`;
+
   const tokenResponse = await fetch("https://www.linkedin.com/oauth/v2/accessToken", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       grant_type: "authorization_code",
       code: query.code,
-      redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/linkedin/callback`,
+      redirect_uri: redirectUri,
       client_id: process.env.LINKEDIN_CLIENT_ID || "",
       client_secret: process.env.LINKEDIN_CLIENT_SECRET || "",
     }),

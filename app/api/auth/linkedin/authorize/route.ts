@@ -11,7 +11,11 @@ import crypto from "crypto";
 export const GET = async (request: Request) => {
   try {
     const clientId = process.env.LINKEDIN_CLIENT_ID;
-    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/linkedin/callback`;
+
+    // Get the origin from the request header (works in both local & production)
+    const url = new URL(request.url);
+    const origin = url.origin;
+    const redirectUri = `${origin}/api/auth/linkedin/callback`;
 
     if (!clientId) {
       return fail(500, "LinkedIn Client ID not configured");
