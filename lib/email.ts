@@ -20,7 +20,7 @@ export async function sendTeamInvite(
   inviterName: string,
   role: string,
 ): Promise<void> {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://thepostpilot.vercel.app";
   await sendEmail({
     to,
     subject: `${inviterName} invited you to PostPilot`,

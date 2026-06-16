@@ -24,7 +24,7 @@ export const POST = route(async (request) => {
     .single();
 
   const stripe = getStripe();
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://thepostpilot.vercel.app";
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
