@@ -30,7 +30,10 @@ export const GET = async (request: Request) => {
     linkedInUrl.searchParams.append("client_id", clientId);
     linkedInUrl.searchParams.append("redirect_uri", redirectUri);
     linkedInUrl.searchParams.append("state", state);
-    linkedInUrl.searchParams.append("scope", "openid profile email");
+    // Scopes:
+    // - openid, profile, email: Sign In with LinkedIn (OpenID Connect)
+    // - w_member_social: Share on LinkedIn (publish posts on user's behalf)
+    linkedInUrl.searchParams.append("scope", "openid profile email w_member_social");
 
     // Redirect to LinkedIn
     redirect(linkedInUrl.toString());

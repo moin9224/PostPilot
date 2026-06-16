@@ -3,25 +3,20 @@ import { getServerSupabase } from "@/lib/supabase-server";
 import { z } from "zod";
 
 const Body = z.object({
-  postId: z.string(),
+  postId: z.string().optional(),
+  content: z.string().optional(),
   scheduledFor: z.string().optional(),
 });
 
 /**
- * Publishes a post to LinkedIn.
+ * Publishes a post to LinkedIn using Share on LinkedIn API.
  *
- * If scheduledFor is provided, schedules for that time.
+ * Uses /v2/ugcPosts endpoint with w_member_social scope.
+ * If scheduledFor provided, schedules for later.
  * Otherwise publishes immediately.
- *
- * Flow:
- * 1. Get post from database
- * 2. Get user's LinkedIn account
- * 3. Call LinkedIn API to publish
- * 4. Update post status to "published"
- * 5. Store LinkedIn post ID
  */
 export const POST = route(async (request) => {
-  const { postId, scheduledFor } = await parseBody(request, Body);
+  const { postId, content, scheduledFor } = await parseBody(request, Body);
   const supabase = await getServerSupabase();
 
   // Get current user
@@ -30,25 +25,7 @@ export const POST = route(async (request) => {
     return fail(401, "Not authenticated");
   }
 
-  // If scheduled for future, just update status and return
-  if (scheduledFor) {
-    const scheduledDate = new Date(scheduledFor);
-    if (scheduledDate > new Date()) {
-      // Schedule for later
-      await supabase
-        .from("scheduled_posts_v2")
-        .insert({
-          user_id: user.id,
-          text: "", // Would come from generated_posts table
-          scheduled_for: scheduledFor,
-          status: "scheduled",
-        });
-
-      return ok({ message: "Post scheduled successfully" });
-    }
-  }
-
-  // Publish immediately
+  // Get user's LinkedIn account
   const { data: linkedinAccount, error: accountError } = await supabase
     .from("user_linkedin_accounts")
     .select("*")
@@ -57,72 +34,104 @@ export const POST = route(async (request) => {
     .single();
 
   if (!linkedinAccount || accountError) {
-    return fail(404, "LinkedIn account not connected");
+    return fail(404, "LinkedIn account not connected. Please connect your LinkedIn first.");
   }
 
-  // Get the post to publish
-  const { data: post, error: postError } = await supabase
-    .from("generated_posts")
-    .select("*")
-    .eq("id", postId)
-    .eq("user_id", user.id)
-    .single();
-
-  if (!post || postError) {
-    return fail(404, "Post not found");
+  // Get the content to publish
+  let postContent = content;
+  if (postId && !content) {
+    const { data: post } = await supabase
+      .from("generated_posts")
+      .select("content")
+      .eq("id", postId)
+      .eq("user_id", user.id)
+      .single();
+    postContent = post?.content;
   }
 
-  // Publish to LinkedIn
+  if (!postContent) {
+    return fail(400, "No content to publish");
+  }
+
+  // If scheduled for future, store in DB and return
+  if (scheduledFor) {
+    const scheduledDate = new Date(scheduledFor);
+    if (scheduledDate > new Date()) {
+      await supabase
+        .from("scheduled_posts_v2")
+        .insert({
+          user_id: user.id,
+          text: postContent,
+          scheduled_for: scheduledFor,
+          status: "scheduled",
+        });
+
+      return ok({ message: "Post scheduled successfully" });
+    }
+  }
+
+  // Check token expiry
+  const tokenExpiry = new Date(linkedinAccount.token_expires_at);
+  if (tokenExpiry < new Date()) {
+    return fail(401, "LinkedIn token expired. Please reconnect your LinkedIn account.");
+  }
+
+  // Publish to LinkedIn using UGC Posts API
   try {
-    const publishResponse = await fetch(
-      "https://api.linkedin.com/rest/posts",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${linkedinAccount.access_token}`,
-          "Content-Type": "application/json",
-          "LinkedIn-Version": "202401",
-        },
-        body: JSON.stringify({
-          author: `urn:li:person:${linkedinAccount.linkedin_id}`,
-          lifecycleState: "PUBLISHED",
-          specificContent: {
-            "com.linkedin.ugc.ShareContent": {
-              shareCommentary: {
-                text: post.content,
-              },
-              shareMediaCategory: "NONE",
+    const authorUrn = `urn:li:person:${linkedinAccount.linkedin_id}`;
+
+    const publishResponse = await fetch("https://api.linkedin.com/v2/ugcPosts", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${linkedinAccount.access_token}`,
+        "Content-Type": "application/json",
+        "X-Restli-Protocol-Version": "2.0.0",
+      },
+      body: JSON.stringify({
+        author: authorUrn,
+        lifecycleState: "PUBLISHED",
+        specificContent: {
+          "com.linkedin.ugc.ShareContent": {
+            shareCommentary: {
+              text: postContent,
             },
+            shareMediaCategory: "NONE",
           },
-          visibility: {
-            "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
-          },
-        }),
-      }
-    );
+        },
+        visibility: {
+          "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
+        },
+      }),
+    });
+
+    const responseText = await publishResponse.text();
 
     if (!publishResponse.ok) {
-      const error = await publishResponse.json();
-      return fail(400, `Failed to publish to LinkedIn: ${error.message}`);
+      console.error("LinkedIn publish failed:", responseText);
+      return fail(400, `Failed to publish to LinkedIn: ${responseText}`);
     }
 
-    const publishedPost = await publishResponse.json();
+    const publishedPost = JSON.parse(responseText);
+    const linkedinPostId = publishedPost.id;
 
-    // Update post status in our database
-    await supabase
-      .from("generated_posts")
-      .update({
-        status: "published",
-        linkedin_post_id: publishedPost.id,
-        published_at: new Date().toISOString(),
-      })
-      .eq("id", postId);
+    // Update post status in database if postId provided
+    if (postId) {
+      await supabase
+        .from("generated_posts")
+        .update({
+          status: "published",
+          linkedin_post_id: linkedinPostId,
+          published_at: new Date().toISOString(),
+        })
+        .eq("id", postId);
+    }
 
     return ok({
       message: "Post published to LinkedIn successfully",
-      linkedinPostId: publishedPost.id,
+      linkedinPostId,
     });
   } catch (error: any) {
+    console.error("LinkedIn publish error:", error);
     return fail(500, `Failed to publish post: ${error.message}`);
   }
 });
