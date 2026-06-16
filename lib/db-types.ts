@@ -62,53 +62,6 @@ export interface ScheduledPostRow {
   updated_at: string;
 }
 
-export interface CompetitorRow {
-  id: string;
-  user_id: string;
-  linkedin_profile_url: string;
-  name: string | null;
-  industry: string | null;
-  post_frequency: number | null;
-  avg_engagement: number | null;
-  last_analyzed_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CompetitorPostRow {
-  id: string;
-  competitor_id: string;
-  linkedin_post_id: string | null;
-  content: string | null;
-  posted_at: string | null;
-  impressions: number | null;
-  engagement: number | null;
-  topic: string | null;
-  created_at: string;
-}
-
-export interface ReachIssueData {
-  severity: "critical" | "warning" | "info";
-  title: string;
-  description: string;
-  recommendation: string;
-  expectedImprovement: string;
-}
-
-export interface ReachAnalysisData {
-  score: number;
-  issues: ReachIssueData[];
-  recommendations: string[];
-}
-
-export interface ReachAnalysisRow {
-  id: string;
-  user_id: string;
-  analysis_data: ReachAnalysisData | null;
-  analyzed_at: string;
-  created_at: string;
-}
-
 export interface TeamMemberRow {
   id: string;
   user_id: string;

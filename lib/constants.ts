@@ -91,8 +91,7 @@ export const PRICING_TIERS: PricingTier[] = [
       "Unlimited AI generation",
       "Advanced scheduling",
       "Full analytics suite",
-      "Competitor research",
-      "Reach debugger",
+
       "3 LinkedIn accounts",
     ],
     highlighted: true,
@@ -135,18 +134,6 @@ export const FEATURES = [
       "Track impressions, engagement, and reach with clear, actionable dashboards.",
   },
   {
-    icon: "Users",
-    title: "Competitor Research",
-    description:
-      "See what's working for others in your niche and steal the best ideas.",
-  },
-  {
-    icon: "Stethoscope",
-    title: "Reach Debugger",
-    description:
-      "Diagnose why your reach is stuck and get a prioritized fix-it list.",
-  },
-  {
     icon: "UsersRound",
     title: "Team Collaboration",
     description:
@@ -171,11 +158,6 @@ export const FAQS: FaqItem[] = [
       "We use LinkedIn's official APIs and OAuth. We never store your password and you can disconnect at any time.",
   },
   {
-    question: "What is the Reach Debugger?",
-    answer:
-      "It audits your profile, posting habits, and content quality, then gives you a prioritized list of fixes with expected impact on your reach.",
-  },
-  {
     question: "Can my whole team use it?",
     answer:
       "On the Agency plan you can invite up to 20 teammates with Admin, Editor, and Viewer roles.",
@@ -194,16 +176,6 @@ export const SIDEBAR_NAV: NavItem[] = [
   },
   { label: "Calendar", href: "/dashboard/calendar", icon: "CalendarDays" },
   { label: "Analytics", href: "/dashboard/analytics", icon: "BarChart3" },
-  {
-    label: "Competitor Research",
-    href: "/dashboard/competitor-research",
-    icon: "Users",
-  },
-  {
-    label: "Reach Debugger",
-    href: "/dashboard/reach-debugger",
-    icon: "Stethoscope",
-  },
   {
     label: "Content Library",
     href: "/dashboard/content-library",

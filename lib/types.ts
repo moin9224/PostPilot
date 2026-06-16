@@ -6,8 +6,6 @@ export type Tone = "Professional" | "Casual" | "Inspiring" | "Educational";
 export type Length = "Short" | "Medium" | "Long";
 export type PostStatus = "draft" | "scheduled" | "published" | "failed";
 export type Role = "Admin" | "Editor" | "Viewer";
-export type IssueSeverity = "critical" | "warning" | "good";
-
 export interface User {
   id: string;
   name: string;
@@ -51,44 +49,6 @@ export interface GeneratedPost {
   suggestedBestTime?: string;
   tone?: string;
   industry?: string;
-}
-
-export interface Competitor {
-  id: string;
-  name: string;
-  handle: string;
-  industry: string;
-  avatarUrl?: string;
-  /** posts per week */
-  postFrequency: number;
-  avgEngagement: number;
-  followers: number;
-  topTopics: string[];
-}
-
-export interface CompetitorPost {
-  id: string;
-  competitorName: string;
-  text: string;
-  likes: number;
-  comments: number;
-  postedAt: string;
-}
-
-export interface ReachIssue {
-  id: string;
-  severity: IssueSeverity;
-  title: string;
-  problem: string;
-  why: string;
-  fix: string;
-  expectedImprovement: string;
-}
-
-export interface Recommendation {
-  id: string;
-  text: string;
-  impact: "High" | "Medium" | "Low";
 }
 
 export interface TeamMember {

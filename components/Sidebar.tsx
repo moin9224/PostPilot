@@ -147,7 +147,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               </span>
             </div>
             <p className="mt-1.5 text-[11px] leading-relaxed text-neutral-500">
-              Unlimited generation + competitor research.
+              Unlimited generation + full analytics suite.
             </p>
           </Link>
         </div>

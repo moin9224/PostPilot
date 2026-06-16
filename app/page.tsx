@@ -16,9 +16,7 @@ import {
   Repeat2,
   Send,
   Sparkles,
-  Stethoscope,
   Twitter,
-  Users,
   UsersRound,
 } from "lucide-react";
 import Button from "@/components/Common/Button";
@@ -216,8 +214,8 @@ function ProductPreview() {
           { icon: BarChart3, label: "Dashboard" },
           { icon: Sparkles, label: "Generator", active: true },
           { icon: CalendarClock, label: "Calendar" },
-          { icon: Users, label: "Competitors" },
-          { icon: Stethoscope, label: "Reach Debugger" },
+          { icon: BarChart3, label: "Analytics" },
+          { icon: Sparkles, label: "Library" },
         ].map((item) => (
           <div
             key={item.label}
@@ -438,26 +436,6 @@ function Features() {
             <AnalyticsShowcase />
           </BentoCard>
 
-          <BentoCard
-            className="md:col-span-2"
-            icon={Users}
-            eyebrow="Research"
-            title="Steal what's working in your niche."
-            description="Surface your competitors' best posts and the patterns behind them."
-          >
-            <ResearchShowcase />
-          </BentoCard>
-
-          <BentoCard
-            className="md:col-span-2"
-            icon={Stethoscope}
-            eyebrow="Diagnostics"
-            title="Why your reach stalled — in one click."
-            description="Audits profile, cadence and content quality, then prescribes the fix."
-          >
-            <DiagnosticsShowcase />
-          </BentoCard>
-
           {/* Row 3: Teams (full-width dark capstone) */}
           <TeamsCapstone />
         </div>
@@ -592,103 +570,6 @@ function AnalyticsShowcase() {
       <div className="mt-1.5 grid grid-cols-7 gap-1.5 text-center text-[9px] font-medium text-neutral-400">
         {days.map((d, i) => (
           <span key={i}>{d}</span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ResearchShowcase() {
-  const rows = [
-    {
-      handle: "jasperking",
-      delta: "+24%",
-      followers: "84k",
-      grad: "from-rose-400 to-rose-600",
-    },
-    {
-      handle: "dianawu",
-      delta: "+18%",
-      followers: "62k",
-      grad: "from-violet-400 to-violet-600",
-    },
-    {
-      handle: "m.kowalski",
-      delta: "+11%",
-      followers: "41k",
-      grad: "from-amber-400 to-orange-500",
-    },
-  ];
-  return (
-    <div className="mt-6 space-y-1.5">
-      {rows.map((r) => (
-        <div
-          key={r.handle}
-          className="flex items-center gap-2.5 rounded-md border border-neutral-200 bg-white px-2.5 py-1.5"
-        >
-          <div
-            className={cn(
-              "h-6 w-6 flex-shrink-0 rounded-full bg-gradient-to-br ring-2 ring-white",
-              r.grad,
-            )}
-          />
-          <div className="min-w-0 flex-1 leading-tight">
-            <div className="truncate text-[12px] font-medium text-ink">
-              @{r.handle}
-            </div>
-            <div className="text-[10px] text-neutral-500 tabular-nums">
-              {r.followers} followers
-            </div>
-          </div>
-          <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-semibold text-success tabular-nums">
-            {r.delta}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function DiagnosticsShowcase() {
-  const items: { label: string; status: "ok" | "fix" }[] = [
-    { label: "Profile completeness", status: "ok" },
-    { label: "Posting cadence", status: "ok" },
-    { label: "Hook strength", status: "fix" },
-  ];
-  return (
-    <div className="mt-6">
-      <div className="flex items-baseline justify-between">
-        <div>
-          <div className="flex items-baseline gap-0.5">
-            <span className="text-2xl font-semibold text-ink tabular-nums">
-              72
-            </span>
-            <span className="text-sm text-neutral-400">/ 100</span>
-          </div>
-          <div className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-neutral-500">
-            Reach score
-          </div>
-        </div>
-        <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-1.5 py-0.5 text-[10px] font-semibold text-warning ring-1 ring-inset ring-warning/20">
-          <span className="h-1 w-1 rounded-full bg-warning" />
-          1 issue
-        </span>
-      </div>
-      <div className="mt-4 space-y-1 border-t border-neutral-100 pt-3">
-        {items.map((it) => (
-          <div
-            key={it.label}
-            className="flex items-center justify-between text-[12px]"
-          >
-            <span className="text-neutral-700">{it.label}</span>
-            {it.status === "ok" ? (
-              <Check className="h-3.5 w-3.5 text-success" />
-            ) : (
-              <span className="rounded bg-warning/10 px-1.5 py-0.5 text-[10px] font-semibold text-warning">
-                Fix
-              </span>
-            )}
-          </div>
         ))}
       </div>
     </div>

@@ -1,10 +1,6 @@
 import type {
-  Competitor,
-  CompetitorPost,
   MetricCard,
   Post,
-  ReachIssue,
-  Recommendation,
   TeamMember,
   TrendPoint,
   User,
@@ -97,128 +93,6 @@ export const DOW_DATA = [
   { label: "Fri", value: 4.1 },
   { label: "Sat", value: 2.4 },
   { label: "Sun", value: 1.9 },
-];
-
-export const COMPETITORS: Competitor[] = [
-  {
-    id: "c1",
-    name: "Sara Lin",
-    handle: "saralin",
-    industry: "Marketing",
-    postFrequency: 5,
-    avgEngagement: 6.2,
-    followers: 48200,
-    topTopics: ["Branding", "Storytelling", "Growth"],
-  },
-  {
-    id: "c2",
-    name: "Marcus Reid",
-    handle: "marcusreid",
-    industry: "Technology",
-    postFrequency: 3,
-    avgEngagement: 4.9,
-    followers: 31500,
-    topTopics: ["AI", "Startups", "Engineering"],
-  },
-  {
-    id: "c3",
-    name: "Priya Nair",
-    handle: "priyanair",
-    industry: "Sales",
-    postFrequency: 4,
-    avgEngagement: 5.5,
-    followers: 27800,
-    topTopics: ["Cold Outreach", "SaaS", "Negotiation"],
-  },
-];
-
-export const COMPETITOR_POSTS: CompetitorPost[] = [
-  {
-    id: "cp1",
-    competitorName: "Sara Lin",
-    text: "Your brand is not your logo. It's the feeling people get when they hear your name. 7 ways to engineer that feeling:",
-    likes: 3120,
-    comments: 284,
-    postedAt: "2026-06-10",
-  },
-  {
-    id: "cp2",
-    competitorName: "Marcus Reid",
-    text: "AI won't take your job. Someone using AI will. Here's the exact workflow my team adopted this quarter:",
-    likes: 2890,
-    comments: 198,
-    postedAt: "2026-06-08",
-  },
-  {
-    id: "cp3",
-    competitorName: "Priya Nair",
-    text: "I closed $1.2M in Q1 with cold outreach. Not a single cold call. Here's the email framework that did it:",
-    likes: 4210,
-    comments: 367,
-    postedAt: "2026-06-05",
-  },
-];
-
-export const REACH_ISSUES: ReachIssue[] = [
-  {
-    id: "r1",
-    severity: "critical",
-    title: "Posting frequency too low",
-    problem: "You're posting once per week on average.",
-    why: "LinkedIn rewards consistency. Low frequency means the algorithm rarely surfaces your content.",
-    fix: "Increase to 3–4 posts per week using the content calendar.",
-    expectedImprovement: "+120% reach within 4 weeks",
-  },
-  {
-    id: "r2",
-    severity: "warning",
-    title: "Weak first lines (hooks)",
-    problem: "60% of your posts open with a generic sentence.",
-    why: "The first 2 lines decide whether readers click 'see more'.",
-    fix: "Lead with a bold claim, a question, or a surprising stat.",
-    expectedImprovement: "+35% dwell time",
-  },
-  {
-    id: "r3",
-    severity: "warning",
-    title: "Inconsistent posting times",
-    problem: "Posts go out at random hours.",
-    why: "Posting when your audience is offline buries early engagement.",
-    fix: "Schedule for Tue–Thu, 9am in your audience's timezone.",
-    expectedImprovement: "+22% early engagement",
-  },
-  {
-    id: "r4",
-    severity: "good",
-    title: "Profile completeness",
-    problem: "Your profile is 100% complete.",
-    why: "A complete profile builds trust and boosts discoverability.",
-    fix: "Keep it up — review your headline quarterly.",
-    expectedImprovement: "Maintaining strong baseline",
-  },
-];
-
-export const RECOMMENDATIONS: Recommendation[] = [
-  {
-    id: "rec1",
-    text: "Increase posts to 3x/week to roughly double your monthly reach.",
-    impact: "High",
-  },
-  {
-    id: "rec2",
-    text: "Use 2–3 industry keywords naturally in the first paragraph.",
-    impact: "High",
-  },
-  {
-    id: "rec3",
-    text: "Post Tuesday–Thursday around 9am for peak audience activity.",
-    impact: "Medium",
-  },
-  {
-    id: "rec4",
-    text: "End posts with a clear question to drive comments.",
-    impact: "Medium",
-  },
 ];
 
 export const TEAM_MEMBERS: TeamMember[] = [
