@@ -1,61 +1,12 @@
 "use client";
 
-import { CheckCircle2, Linkedin } from "lucide-react";
-import { useCallback, useState } from "react";
+import { CheckCircle2, Linkedin, LogOut } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Button from "@/components/Common/Button";
 import Card from "@/components/Common/Card";
 import Input from "@/components/Common/Input";
-import Select from "@/components/Common/Select";
-import { CURRENT_USER } from "@/lib/mock";
-
-const TIMEZONES = [
-  { value: "America/New_York", label: "Eastern (ET)" },
-  { value: "America/Los_Angeles", label: "Pacific (PT)" },
-  { value: "Europe/London", label: "London (GMT)" },
-  { value: "Asia/Kolkata", label: "India (IST)" },
-];
-
-const FREQUENCIES = [
-  { value: "daily", label: "Daily" },
-  { value: "3x", label: "3x per week" },
-  { value: "weekly", label: "Weekly" },
-];
-
-function Toggle({
-  label,
-  description,
-  defaultOn,
-}: {
-  label: string;
-  description?: string;
-  defaultOn?: boolean;
-}) {
-  const [on, setOn] = useState(!!defaultOn);
-  return (
-    <div className="flex items-center justify-between gap-4 py-2">
-      <div>
-        <p className="text-sm font-medium text-ink">{label}</p>
-        {description && (
-          <p className="text-xs text-gray-500">{description}</p>
-        )}
-      </div>
-      <button
-        role="switch"
-        aria-checked={on}
-        onClick={() => setOn((v) => !v)}
-        className={`relative h-5 w-9 flex-shrink-0 rounded-full transition-colors ${
-          on ? "bg-ink" : "bg-neutral-200"
-        }`}
-      >
-        <span
-          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-            on ? "translate-x-4" : "translate-x-0.5"
-          }`}
-        />
-      </button>
-    </div>
-  );
-}
+import { createBrowserClient } from "@supabase/ssr";
 
 function SectionTitle({
   children,
@@ -79,25 +30,84 @@ function SectionTitle({
 }
 
 export default function SettingsPage() {
-  const [name, setName] = useState(CURRENT_USER.name);
-  const [email, setEmail] = useState(CURRENT_USER.email);
-  const [frequency, setFrequency] = useState("3x");
-  const [timezone, setTimezone] = useState("America/New_York");
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [plan, setPlan] = useState("Free");
+  const [linkedinAccount, setLinkedinAccount] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const handleSave = useCallback(() => {
-    setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
-      alert("Settings saved successfully!");
-    }, 600);
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      setEmail(user.email || "");
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, subscription_plan")
+        .eq("id", user.id)
+        .single();
+
+      setName(profile?.full_name || "");
+      setPlan(profile?.subscription_plan || "Free");
+
+      const { data: linkedin } = await supabase
+        .from("user_linkedin_accounts")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      setLinkedinAccount(linkedin);
+      setLoading(false);
+    })();
   }, []);
 
-  const confirmDelete = useCallback(() => {
-    if (window.confirm("Are you sure you want to delete your account? This cannot be undone.")) {
-      alert("Account deletion requested.");
-    }
+  const handleSave = useCallback(async () => {
+    setSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase
+      .from("profiles")
+      .update({ full_name: name })
+      .eq("id", user.id);
+    setSaving(false);
+    alert("Settings saved successfully!");
+  }, [name]);
+
+  const handleLogout = useCallback(async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+  }, [router]);
+
+  const handleDisconnectLinkedIn = useCallback(async () => {
+    if (!confirm("Disconnect your LinkedIn account?")) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase
+      .from("user_linkedin_accounts")
+      .update({ is_active: false })
+      .eq("user_id", user.id);
+    setLinkedinAccount(null);
   }, []);
+
+  if (loading) {
+    return (
+      <div className="py-12 text-center text-sm text-neutral-500">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -114,108 +124,91 @@ export default function SettingsPage() {
             label="Email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            disabled
           />
         </div>
         <div className="mt-4 flex justify-end">
-          <Button onClick={handleSave} loading={saving}>Save changes</Button>
+          <Button onClick={handleSave} loading={saving}>
+            Save changes
+          </Button>
         </div>
       </Card>
 
       {/* LinkedIn connection */}
       <Card>
         <SectionTitle>LinkedIn connection</SectionTitle>
-        <div className="flex items-center justify-between rounded-md border border-edge p-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-md bg-brand/10 text-brand">
-              <Linkedin className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="flex items-center gap-1.5 text-sm font-medium text-ink">
-                Connected
-                <CheckCircle2 className="h-4 w-4 text-success" />
-              </p>
-              <p className="text-xs text-gray-500">
-                {CURRENT_USER.name} (@{CURRENT_USER.linkedinHandle})
-              </p>
+        {linkedinAccount ? (
+          <div className="flex items-center justify-between rounded-md border border-neutral-200 p-4">
+            <div className="flex items-center gap-3">
+              {linkedinAccount.profile_photo_url ? (
+                <img
+                  src={linkedinAccount.profile_photo_url}
+                  alt={linkedinAccount.profile_name}
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+              ) : (
+                <span className="flex h-10 w-10 items-center justify-center rounded-md bg-brand/10 text-brand">
+                  <Linkedin className="h-5 w-5" />
+                </span>
+              )}
+              <div>
+                <p className="flex items-center gap-1.5 text-sm font-medium text-ink">
+                  Connected
+                  <CheckCircle2 className="h-4 w-4 text-success" />
+                </p>
+                <p className="text-xs text-neutral-500">
+                  {linkedinAccount.profile_name} · {linkedinAccount.profile_email}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <a href="/api/auth/linkedin/authorize">
+                <Button variant="secondary" size="sm">
+                  Reconnect
+                </Button>
+              </a>
+              <Button variant="danger" size="sm" onClick={handleDisconnectLinkedIn}>
+                Disconnect
+              </Button>
             </div>
           </div>
-          <Button variant="secondary" size="sm" onClick={() => alert("Redirecting to LinkedIn OAuth...")}>
-            Reconnect
-          </Button>
-        </div>
+        ) : (
+          <div className="flex items-center justify-between rounded-md border border-neutral-200 p-4">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+                <Linkedin className="h-5 w-5" />
+              </span>
+              <p className="text-sm text-neutral-600">
+                Connect your LinkedIn to publish posts.
+              </p>
+            </div>
+            <a href="/api/auth/linkedin/authorize">
+              <Button>Connect</Button>
+            </a>
+          </div>
+        )}
       </Card>
 
-      {/* Preferences */}
+      {/* Plan */}
       <Card>
-        <SectionTitle>Preferences</SectionTitle>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Select
-            label="Default posting frequency"
-            options={FREQUENCIES}
-            value={frequency}
-            onChange={(e) => setFrequency(e.target.value)}
-          />
-          <Select
-            label="Timezone"
-            options={TIMEZONES}
-            value={timezone}
-            onChange={(e) => setTimezone(e.target.value)}
-          />
-        </div>
-        <div className="mt-4 divide-y divide-edge border-t border-edge">
-          <Toggle
-            label="Email notifications"
-            description="Get notified when posts publish or fail."
-            defaultOn
-          />
-          <Toggle
-            label="Weekly summary"
-            description="A digest of your performance every Monday."
-            defaultOn
-          />
-          <Toggle
-            label="Dark mode"
-            description="Use a darker theme across the app."
-          />
-        </div>
-      </Card>
-
-      {/* Billing */}
-      <Card>
-        <SectionTitle>Billing</SectionTitle>
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-mist p-4">
+        <SectionTitle>Plan</SectionTitle>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-neutral-50 p-4">
           <div>
-            <p className="text-sm font-medium text-ink">Pro — $79/month</p>
-            <p className="text-xs text-gray-500">Next billing: Jul 15, 2026</p>
+            <p className="text-sm font-medium text-ink capitalize">{plan} plan</p>
+            <p className="text-xs text-neutral-500">
+              Manage your subscription.
+            </p>
           </div>
-          <div className="flex gap-2">
-            <Button size="sm" onClick={() => alert("Redirecting to upgrade page...")}>Upgrade</Button>
-            <Button size="sm" variant="secondary" onClick={() => alert("Redirecting to downgrade page...")}>
-              Downgrade
-            </Button>
-          </div>
-        </div>
-        <div className="mt-3">
-          <Button variant="ghost" size="sm" className="text-gray-500" onClick={() => alert("Subscription cancellation requested.")}>
-            Cancel subscription
-          </Button>
         </div>
       </Card>
 
-      {/* Danger zone */}
-      <Card className="border-error/30">
-        <SectionTitle>
-          <span className="text-error">Danger zone</span>
-        </SectionTitle>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-gray-600">
-            Permanently delete your account and all data. This cannot be undone.
-          </p>
-          <Button variant="danger" size="sm" onClick={confirmDelete}>
-            Delete account
-          </Button>
-        </div>
+      {/* Logout */}
+      <Card>
+        <SectionTitle>Session</SectionTitle>
+        <Button variant="secondary" onClick={handleLogout}>
+          <LogOut className="h-4 w-4" />
+          Sign out
+        </Button>
       </Card>
     </div>
   );

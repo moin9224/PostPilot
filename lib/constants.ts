@@ -209,6 +209,5 @@ export const SIDEBAR_NAV: NavItem[] = [
     href: "/dashboard/content-library",
     icon: "Library",
   },
-  { label: "Team", href: "/dashboard/team", icon: "UsersRound" },
   { label: "Settings", href: "/dashboard/settings", icon: "Settings" },
 ];

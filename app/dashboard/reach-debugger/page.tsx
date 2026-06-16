@@ -1,68 +1,79 @@
 "use client";
 
+import { Stethoscope, Inbox } from "lucide-react";
 import { useState } from "react";
-import { CardSkeleton } from "@/components/Common/Loading";
-import IssuesList from "@/components/ReachDebugger/IssuesList";
-import ReachAnalysis from "@/components/ReachDebugger/ReachAnalysis";
-import RecommendationPanel from "@/components/ReachDebugger/RecommendationPanel";
-import { REACH_ISSUES, RECOMMENDATIONS } from "@/lib/mock";
+import Button from "@/components/Common/Button";
+import Card from "@/components/Common/Card";
 
 export default function ReachDebuggerPage() {
-  const [analyzed, setAnalyzed] = useState(false);
+  const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
 
-  function runAnalysis() {
+  async function handleAnalyze() {
+    if (!url.trim()) return;
     setLoading(true);
-    setTimeout(() => {
-      setAnalyzed(true);
+    try {
+      const res = await fetch("/api/reach-debugger/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postUrl: url }),
+      });
+      const data = await res.json();
+      setResult(data);
+    } catch (err) {
+      alert("Failed to analyze");
+    } finally {
       setLoading(false);
-    }, 1400);
+    }
   }
 
   return (
     <div className="space-y-6">
-      <ReachAnalysis
-        issues={analyzed ? REACH_ISSUES : []}
-        analyzed={analyzed}
-        loading={loading}
-        onRun={runAnalysis}
-      />
+      <header>
+        <h1 className="text-2xl font-bold tracking-[-0.02em] text-ink">
+          Reach Debugger
+        </h1>
+        <p className="mt-1 text-sm text-neutral-500">
+          Analyze why your posts aren't getting the reach they deserve.
+        </p>
+      </header>
 
-      {loading && (
-        <div className="space-y-3">
-          <CardSkeleton />
-          <CardSkeleton />
-          <CardSkeleton />
+      <Card>
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            placeholder="Paste your LinkedIn post URL..."
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className="flex-1 rounded-md border border-neutral-200 bg-white px-3 py-2.5 text-sm focus:border-ink focus:outline-none"
+          />
+          <Button onClick={handleAnalyze} loading={loading} disabled={!url.trim()}>
+            Analyze
+          </Button>
         </div>
+      </Card>
+
+      {!result && !loading && (
+        <Card>
+          <div className="py-12 text-center">
+            <Stethoscope className="mx-auto h-10 w-10 text-neutral-300" />
+            <p className="mt-3 text-sm text-neutral-500">
+              No analysis yet
+            </p>
+            <p className="mt-1 text-xs text-neutral-400">
+              Paste a LinkedIn post URL to start analyzing its reach.
+            </p>
+          </div>
+        </Card>
       )}
 
-      {!loading && analyzed && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div>
-            <div className="mb-4">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
-                Diagnosis
-              </span>
-              <h3 className="mt-1 text-base font-semibold tracking-[-0.01em] text-ink">
-                Issues found
-              </h3>
-            </div>
-            <IssuesList issues={REACH_ISSUES} />
-          </div>
-          <div className="h-fit lg:sticky lg:top-20">
-            <RecommendationPanel recommendations={RECOMMENDATIONS} />
-          </div>
-        </div>
-      )}
-
-      {!loading && !analyzed && (
-        <div className="rounded-xl border border-dashed border-neutral-300 bg-white py-20 text-center">
-          <p className="mx-auto max-w-md text-sm leading-relaxed text-neutral-500">
-            We&apos;ll check your profile, posting frequency, content quality,
-            hashtag strategy and timing — then return a prioritized fix-it list
-            with expected impact.
-          </p>
-        </div>
+      {result && (
+        <Card>
+          <pre className="text-xs overflow-auto">
+            {JSON.stringify(result, null, 2)}
+          </pre>
+        </Card>
       )}
     </div>
   );

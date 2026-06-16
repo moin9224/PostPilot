@@ -121,7 +121,7 @@ export default function GeneratorPanel({
         <Sparkles className="h-4 w-4" />
         {loading
           ? "Generating…"
-          : (ctaLabel ?? "Generate 7 variations")}
+          : (ctaLabel ?? "Generate post")}
         {!loading && (
           <kbd className="ml-auto inline-flex items-center gap-0.5 rounded border border-white/20 bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-white/80">
             <Command className="h-2.5 w-2.5" />

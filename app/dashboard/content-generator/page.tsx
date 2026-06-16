@@ -31,8 +31,6 @@ import YoutubeIngest, {
   type VideoMeta,
 } from "@/components/ContentGenerator/YoutubeIngest";
 import ScheduleModal from "@/components/ContentCalendar/ScheduleModal";
-import { generateMockPosts } from "@/lib/mock";
-import { CURRENT_USER } from "@/lib/mock";
 import type { GeneratedPost } from "@/lib/types";
 import { cn, formatNumber } from "@/lib/utils";
 
@@ -64,33 +62,94 @@ export default function ContentGeneratorPage() {
   const ctaLabel =
     source === "youtube"
       ? "Generate from video"
-      : "Generate 7 variations";
+      : "Generate post";
 
-  function handleGenerate() {
+  async function handleGenerate() {
     if (!canSubmit) return;
     setLoading(true);
     setPosts([]);
     setSelected(null);
 
-    // Derive prompt context based on active source.
-    const seed =
+    const topic =
       source === "youtube" && videoMeta
         ? `${videoMeta.title} — ${videoMeta.quotes[0]}`
         : settings.topic;
 
-    setTimeout(() => {
-      const generated = generateMockPosts(seed);
+    try {
+      const res = await fetch("/api/generate-content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic,
+          tone: settings.tone.toLowerCase(),
+          industry: settings.industry,
+          audience: settings.audience,
+          style: settings.length.toLowerCase(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Failed to generate post");
+        return;
+      }
+
+      const generated: GeneratedPost[] = data.posts.map((p: any) => ({
+        id: p.id || crypto.randomUUID(),
+        text: p.content,
+        hashtags: p.hashtags || [],
+        characterCount: p.characterCount,
+        estimatedReach: p.estimatedReach,
+        suggestedBestTime: p.suggestedBestTime,
+        tone: settings.tone,
+        industry: settings.industry,
+      }));
+
       setPosts(generated);
-      setSelected(generated[0]);
+      setSelected(generated[0] || null);
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
       setLoading(false);
-    }, 1200);
+    }
   }
 
-  function handleRegenerate(id: string) {
-    const seed =
-      source === "youtube" && videoMeta ? videoMeta.title : settings.topic;
-    const fresh = generateMockPosts(seed, 1)[0];
-    setPosts((prev) => prev.map((p) => (p.id === id ? { ...fresh, id } : p)));
+  async function handleRegenerate(id: string) {
+    setLoading(true);
+    try {
+      const topic =
+        source === "youtube" && videoMeta ? videoMeta.title : settings.topic;
+      const res = await fetch("/api/generate-content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic,
+          tone: settings.tone.toLowerCase(),
+          industry: settings.industry,
+          audience: settings.audience,
+          style: settings.length.toLowerCase(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Failed to regenerate");
+        return;
+      }
+      const p = data.posts[0];
+      const fresh: GeneratedPost = {
+        id: p.id || id,
+        text: p.content,
+        hashtags: p.hashtags || [],
+        characterCount: p.characterCount,
+        estimatedReach: p.estimatedReach,
+        suggestedBestTime: p.suggestedBestTime,
+        tone: settings.tone,
+        industry: settings.industry,
+      };
+      setPosts((prev) => prev.map((post) => (post.id === id ? fresh : post)));
+    } finally {
+      setLoading(false);
+    }
   }
 
   function handleDelete(id: string) {
@@ -582,14 +641,14 @@ function LinkedInPreviewCard({
         <div className="rounded-lg border border-neutral-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
           <div className="flex items-start gap-2.5 px-4 pt-4">
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-action text-sm font-semibold text-white">
-              {CURRENT_USER.name.charAt(0)}
+              Y
             </div>
             <div className="min-w-0 flex-1 leading-tight">
               <p className="text-[13px] font-semibold text-ink">
-                {CURRENT_USER.name}
+                Your Name
               </p>
               <p className="truncate text-[11px] text-neutral-500">
-                Building in public · {CURRENT_USER.linkedinHandle}
+                Your headline
               </p>
               <p className="mt-0.5 flex items-center gap-1 text-[10px] text-neutral-400">
                 Now · <Globe className="h-2.5 w-2.5" />

@@ -2,20 +2,69 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { ChevronRight, Sparkles, X } from "lucide-react";
 import Logo from "@/components/Common/Logo";
 import Icon from "@/components/Common/Icon";
 import { SIDEBAR_NAV } from "@/lib/constants";
-import { CURRENT_USER } from "@/lib/mock";
 import { cn } from "@/lib/utils";
+import { createBrowserClient } from "@supabase/ssr";
 
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
 }
 
+interface UserSummary {
+  name: string;
+  plan: string;
+  avatarUrl: string | null;
+}
+
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const [user, setUser] = useState<UserSummary>({
+    name: "User",
+    plan: "Free",
+    avatarUrl: null,
+  });
+
+  useEffect(() => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+
+    supabase.auth.getUser().then(async ({ data: { user: authUser } }) => {
+      if (!authUser) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, subscription_plan, avatar_url")
+        .eq("id", authUser.id)
+        .single();
+
+      const { data: linkedin } = await supabase
+        .from("user_linkedin_accounts")
+        .select("profile_name, profile_photo_url")
+        .eq("user_id", authUser.id)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      setUser({
+        name:
+          profile?.full_name ||
+          linkedin?.profile_name ||
+          authUser.email?.split("@")[0] ||
+          "User",
+        plan: profile?.subscription_plan
+          ? profile.subscription_plan.charAt(0).toUpperCase() +
+            profile.subscription_plan.slice(1)
+          : "Free",
+        avatarUrl: linkedin?.profile_photo_url || profile?.avatar_url || null,
+      });
+    });
+  }, []);
 
   return (
     <>
@@ -109,15 +158,23 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             href="/dashboard/settings"
             className="flex items-center gap-2.5 rounded-md p-1.5 transition-colors hover:bg-neutral-50"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-action text-xs font-semibold text-white">
-              {CURRENT_USER.name.charAt(0)}
-            </div>
+            {user.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user.name}
+                className="h-8 w-8 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-action text-xs font-semibold text-white">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+            )}
             <div className="min-w-0 flex-1">
               <p className="truncate text-[13px] font-medium text-ink">
-                {CURRENT_USER.name}
+                {user.name}
               </p>
               <p className="truncate text-[11px] text-neutral-500">
-                {CURRENT_USER.plan} plan
+                {user.plan} plan
               </p>
             </div>
             <ChevronRight className="h-3.5 w-3.5 text-neutral-400" />
