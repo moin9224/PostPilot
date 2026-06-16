@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Linkedin, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import Button from "@/components/Common/Button";
 import Input from "@/components/Common/Input";
 import { isValidEmail, passwordStrength } from "@/lib/utils";
@@ -102,23 +102,6 @@ export default function AuthForm({ mode }: { mode: Mode }) {
     }
   }
 
-  async function handleLinkedInAuth() {
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "linkedin_oidc",
-        options: {
-          redirectTo: `${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback`,
-        },
-      });
-
-      if (error) throw error;
-    } catch (error) {
-      setErrors({
-        submit: error instanceof Error ? error.message : "LinkedIn auth failed",
-      });
-    }
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
@@ -128,24 +111,15 @@ export default function AuthForm({ mode }: { mode: Mode }) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={handleGoogleAuth}
-        >
-          <Mail className="h-4 w-4" />
-          Google
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={handleLinkedInAuth}
-        >
-          <Linkedin className="h-4 w-4 text-brand" />
-          LinkedIn
-        </Button>
-      </div>
+      <Button
+        type="button"
+        variant="secondary"
+        className="w-full"
+        onClick={handleGoogleAuth}
+      >
+        <Mail className="h-4 w-4" />
+        Continue with Google
+      </Button>
 
       <div className="flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-400">
         <span className="h-px flex-1 bg-neutral-200" />
