@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   title: "PostPilot — AI LinkedIn Content Creator",
   description:
     "Generate, schedule, and analyze LinkedIn content with AI. Grow your audience on autopilot.",
+  icons: {
+    icon: "/Final_logo.png",
+    shortcut: "/Final_logo.png",
+    apple: "/Final_logo.png",
+  },
 };
 
 export default function RootLayout({

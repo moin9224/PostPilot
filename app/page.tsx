@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
@@ -175,9 +176,13 @@ function ProductPreview() {
       {/* Sidebar */}
       <div className="hidden flex-col gap-1 border-r border-neutral-200 bg-white p-4 md:flex">
         <div className="flex items-center gap-2 px-2 pb-3">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-brand text-white">
-            <Sparkles className="h-3.5 w-3.5" />
-          </span>
+          <Image
+            src="/Final_logo.png"
+            alt="PostPilot"
+            width={28}
+            height={28}
+            className="h-7 w-7 object-contain"
+          />
           <span className="text-sm font-semibold tracking-tight">
             PostPilot
           </span>
