@@ -95,11 +95,12 @@ export const GET = async (request: Request) => {
             linkedin_id: linkedinId,
             profile_name: profileName,
             profile_email: profileEmail,
-            profile_picture: profilePicture,
+            profile_photo_url: profilePicture,
             access_token,
             refresh_token: refresh_token || null,
             id_token: id_token || null,
             token_expires_at: new Date(Date.now() + (expires_in || 5184000) * 1000).toISOString(),
+            connected_at: new Date().toISOString(),
             is_active: true,
           },
           { onConflict: "user_id,linkedin_id" }

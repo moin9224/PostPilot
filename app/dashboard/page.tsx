@@ -23,6 +23,7 @@ import EngagementMetrics from "@/components/Analytics/EngagementMetrics";
 import PerformanceChart from "@/components/Analytics/PerformanceChart";
 import { DASHBOARD_METRICS, POSTS, TREND_DATA } from "@/lib/mock";
 import { formatDate, formatTime, truncate } from "@/lib/utils";
+import { getServerSupabase } from "@/lib/supabase-server";
 
 const TRENDING = [
   { topic: "AI in the workplace", delta: "+312%", icon: "🤖" },
@@ -32,9 +33,28 @@ const TRENDING = [
   { topic: "Hiring & retention", delta: "+64%", icon: "👥" },
 ];
 
-export default function DashboardHome() {
+export default async function DashboardHome() {
   const upcoming = POSTS.filter((p) => p.status === "scheduled").slice(0, 3);
   const recent = POSTS.filter((p) => p.status === "published").slice(0, 3);
+
+  // Fetch LinkedIn connection status from database
+  const supabase = await getServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let linkedinAccount: any = null;
+  if (user) {
+    const { data } = await supabase
+      .from("user_linkedin_accounts")
+      .select("profile_name, profile_email, profile_photo_url, linkedin_id, token_expires_at, is_active")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    linkedinAccount = data;
+  }
+
+  const isLinkedinConnected = Boolean(linkedinAccount);
 
   return (
     <div className="space-y-6">
@@ -88,25 +108,64 @@ export default function DashboardHome() {
       </section>
 
       {/* LinkedIn Connection Card */}
-      <section className="rounded-xl border border-blue-200 bg-blue-50/50 p-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-              <Linkedin className="h-5 w-5 text-blue-600" />
+      {isLinkedinConnected ? (
+        <section className="rounded-xl border border-green-200 bg-green-50/50 p-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {linkedinAccount.profile_photo_url ? (
+                <img
+                  src={linkedinAccount.profile_photo_url}
+                  alt={linkedinAccount.profile_name || "LinkedIn"}
+                  className="h-10 w-10 rounded-full object-cover border-2 border-green-200"
+                />
+              ) : (
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                </div>
+              )}
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-ink">
+                    {linkedinAccount.profile_name || "LinkedIn Account"}
+                  </h3>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Connected
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-600">
+                  {linkedinAccount.profile_email || "Ready to publish & track analytics"}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold text-ink">LinkedIn Connection</h3>
-              <p className="text-xs text-neutral-600">Connect your account to post and track analytics</p>
-            </div>
+            <a href="/api/auth/linkedin/authorize">
+              <Button variant="secondary" className="text-xs">
+                Reconnect
+              </Button>
+            </a>
           </div>
-          <a href="/api/auth/linkedin/authorize">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-              <CheckCircle2 className="h-4 w-4" />
-              Connect LinkedIn
-            </Button>
-          </a>
-        </div>
-      </section>
+        </section>
+      ) : (
+        <section className="rounded-xl border border-blue-200 bg-blue-50/50 p-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
+                <Linkedin className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-ink">LinkedIn Connection</h3>
+                <p className="text-xs text-neutral-600">Connect your account to post and track analytics</p>
+              </div>
+            </div>
+            <a href="/api/auth/linkedin/authorize">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                <CheckCircle2 className="h-4 w-4" />
+                Connect LinkedIn
+              </Button>
+            </a>
+          </div>
+        </section>
+      )}
 
       {/* Key Stats Grid */}
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
