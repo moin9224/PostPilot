@@ -21,7 +21,7 @@ const DESCRIPTIONS: Record<string, string> = {
   "/dashboard/content-generator": "Draft posts in your voice. Pick the winner.",
   "/dashboard/calendar": "Queue posts for peak attention windows.",
   "/dashboard/analytics": "Reach, engagement and follower flow.",
-
+  "/dashboard/templates": "100+ proven post templates for every industry.",
   "/dashboard/content-library": "Every draft, scheduled and published post.",
   "/dashboard/team": "Roles, approvals and shared access.",
   "/dashboard/settings": "Account, brand voice and integrations.",

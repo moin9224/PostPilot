@@ -176,6 +176,7 @@ export const SIDEBAR_NAV: NavItem[] = [
   },
   { label: "Calendar", href: "/dashboard/calendar", icon: "CalendarDays" },
   { label: "Analytics", href: "/dashboard/analytics", icon: "BarChart3" },
+  { label: "Templates", href: "/dashboard/templates", icon: "FileText" },
   {
     label: "Content Library",
     href: "/dashboard/content-library",
