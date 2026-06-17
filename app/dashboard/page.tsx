@@ -102,13 +102,13 @@ export default async function DashboardHome() {
 
             <div className="flex gap-3">
               <Link href="/dashboard/content-generator" className="flex-1">
-                <Button className="w-full bg-white text-ink hover:bg-white/90">
+                <Button className="w-full bg-white !text-ink hover:bg-white/90">
                   <Sparkles className="h-4 w-4" />
                   Generate post
                 </Button>
               </Link>
               <Link href="/dashboard/calendar">
-                <Button variant="ghost" className="text-white hover:bg-white/10">
+                <Button variant="ghost" className="border border-white/30 !text-white hover:bg-white/10">
                   <Calendar className="h-4 w-4" />
                 </Button>
               </Link>
