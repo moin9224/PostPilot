@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       response_format: "url",
     });
 
-    const imageUrl = response.data[0]?.url;
+    const imageUrl = response.data?.[0]?.url;
     if (!imageUrl) return NextResponse.json({ error: "No image returned." }, { status: 500 });
 
     return NextResponse.json({ url: imageUrl });
