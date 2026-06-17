@@ -270,6 +270,7 @@ export default function CalendarPage() {
                 const isCurrentMonth = dayNum >= 1 && dayNum <= totalDays;
                 const cellDate = new Date(year, month, dayNum);
                 const isToday = isCurrentMonth && isSameDay(cellDate, today);
+                const isPast = isCurrentMonth && !isToday && cellDate < today;
                 const isSelected =
                   isCurrentMonth &&
                   selectedDay != null &&
@@ -287,9 +288,9 @@ export default function CalendarPage() {
                       "relative min-h-[90px] border-b border-r border-neutral-100 p-2 transition-colors",
                       isLastRow && "border-b-0",
                       (i + 1) % 7 === 0 && "border-r-0",
-                      isCurrentMonth
-                        ? "cursor-pointer hover:bg-neutral-50"
-                        : "bg-neutral-50/40",
+                      !isCurrentMonth && "bg-neutral-50/40",
+                      isCurrentMonth && isPast && "bg-neutral-50/70 cursor-pointer hover:bg-neutral-100/60",
+                      isCurrentMonth && !isPast && "cursor-pointer hover:bg-neutral-50",
                       isSelected && "bg-blue-50/60",
                     )}
                   >
@@ -299,9 +300,11 @@ export default function CalendarPage() {
                         "flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-medium",
                         isToday
                           ? "bg-ink text-white"
-                          : isCurrentMonth
-                            ? "text-ink"
-                            : "text-neutral-300",
+                          : isPast
+                            ? "text-neutral-300"
+                            : isCurrentMonth
+                              ? "text-ink"
+                              : "text-neutral-200",
                       )}
                     >
                       {isCurrentMonth ? dayNum : ""}
@@ -312,7 +315,12 @@ export default function CalendarPage() {
                       {dayPosts.slice(0, 3).map((p) => (
                         <div
                           key={p.id}
-                          className="flex items-center gap-1 rounded px-1 py-0.5 text-[10px] font-medium text-neutral-700 bg-neutral-100 truncate"
+                          className={cn(
+                            "flex items-center gap-1 rounded px-1 py-0.5 text-[10px] font-medium truncate",
+                            isPast
+                              ? "bg-neutral-100 text-neutral-400"
+                              : "bg-neutral-100 text-neutral-700",
+                          )}
                         >
                           <span
                             className={cn(
@@ -343,9 +351,20 @@ export default function CalendarPage() {
           {selectedDay ? (
             <>
               <div className="border-b border-neutral-100 px-5 py-4">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
-                  Selected day
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+                    {isSameDay(selectedDay, today)
+                      ? "Today"
+                      : selectedDay < today
+                        ? "Past"
+                        : "Upcoming"}
+                  </p>
+                  {isSameDay(selectedDay, today) && (
+                    <span className="rounded-full bg-ink px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">
+                      Today
+                    </span>
+                  )}
+                </div>
                 <h3 className="mt-0.5 text-sm font-semibold text-ink">
                   {fmtDate(selectedDay.toISOString())}
                 </h3>

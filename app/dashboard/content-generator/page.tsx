@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  CalendarCheck,
   Check,
   Copy,
   Globe,
@@ -13,8 +14,10 @@ import {
   Send,
   Sparkles,
   Wand2,
+  X,
   Youtube,
 } from "lucide-react";
+import Link from "next/link";
 import Button from "@/components/Common/Button";
 import Card from "@/components/Common/Card";
 import GeneratorPanel, {
@@ -54,7 +57,7 @@ export default function ContentGeneratorPage() {
   const [copied, setCopied] = useState(false);
   const [scheduleBusy, setScheduleBusy] = useState(false);
   const [scheduleNotice, setScheduleNotice] = useState<
-    { kind: "success" | "error"; text: string } | null
+    { kind: "success" | "error"; text: string; scheduledFor?: string } | null
   >(null);
 
   /**
@@ -120,7 +123,8 @@ export default function ContentGeneratorPage() {
 
       setScheduleNotice({
         kind: "success",
-        text: `Scheduled for ${new Date(scheduledFor).toLocaleString()}. It will post to LinkedIn automatically.`,
+        text: `Scheduled for ${new Date(scheduledFor).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}.`,
+        scheduledFor,
       });
       setScheduling(null);
     } catch {
@@ -267,6 +271,49 @@ export default function ContentGeneratorPage() {
 
   return (
     <div className="space-y-6">
+      {/* Schedule success / error banner */}
+      {scheduleNotice && (
+        <div
+          className={cn(
+            "flex items-start justify-between gap-4 rounded-xl px-4 py-3 text-sm ring-1",
+            scheduleNotice.kind === "success"
+              ? "bg-emerald-50 text-emerald-800 ring-emerald-200"
+              : "bg-red-50 text-red-700 ring-red-200",
+          )}
+        >
+          <div className="flex items-center gap-2.5">
+            {scheduleNotice.kind === "success" ? (
+              <CalendarCheck className="h-4 w-4 flex-shrink-0 text-emerald-600" />
+            ) : (
+              <X className="h-4 w-4 flex-shrink-0 text-red-500" />
+            )}
+            <span>
+              <span className="font-semibold">
+                {scheduleNotice.kind === "success" ? "Post scheduled! " : "Error: "}
+              </span>
+              {scheduleNotice.text}
+            </span>
+          </div>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            {scheduleNotice.kind === "success" && (
+              <Link
+                href="/dashboard/calendar"
+                className="whitespace-nowrap font-semibold text-emerald-700 underline underline-offset-2 hover:text-emerald-900"
+              >
+                View in Calendar →
+              </Link>
+            )}
+            <button
+              onClick={() => setScheduleNotice(null)}
+              className="rounded p-0.5 hover:bg-black/10"
+              aria-label="Dismiss"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Page header */}
       <header className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <div className="flex flex-wrap items-center gap-2 text-[11px] text-neutral-500">
@@ -529,20 +576,6 @@ export default function ContentGeneratorPage() {
         onSchedule={handleSchedule}
       />
 
-      {scheduleNotice && (
-        <div
-          role="status"
-          className={cn(
-            "fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-lg px-4 py-2 text-sm shadow-lg ring-1",
-            scheduleNotice.kind === "success"
-              ? "bg-emerald-50 text-success ring-emerald-100"
-              : "bg-red-50 text-red-700 ring-red-100",
-          )}
-          onClick={() => setScheduleNotice(null)}
-        >
-          {scheduleNotice.text}
-        </div>
-      )}
     </div>
   );
 }
