@@ -1,5 +1,6 @@
 import { fail, ok, route, parseBody } from "@/lib/api";
 import { getServerSupabase } from "@/lib/supabase-server";
+import { publishToLinkedIn } from "@/lib/linkedin";
 import { z } from "zod";
 
 const Body = z.object({
@@ -9,11 +10,13 @@ const Body = z.object({
 });
 
 /**
- * Publishes a post to LinkedIn using Share on LinkedIn API.
+ * Publishes a post to LinkedIn using the Share on LinkedIn API.
  *
- * Uses /v2/ugcPosts endpoint with w_member_social scope.
- * If scheduledFor provided, schedules for later.
- * Otherwise publishes immediately.
+ * - If `scheduledFor` is a future timestamp, the post is stored in
+ *   `scheduled_posts_v2` with status `scheduled`; the cron worker
+ *   (`/api/cron/publish-scheduled`) publishes it when due.
+ * - Otherwise it is published immediately via the shared `publishToLinkedIn`
+ *   helper — the same code path the cron worker uses.
  */
 export const POST = route(async (request) => {
   const { postId, content, scheduledFor } = await parseBody(request, Body);
@@ -53,85 +56,56 @@ export const POST = route(async (request) => {
     return fail(400, "No content to publish");
   }
 
-  // If scheduled for future, store in DB and return
+  // If scheduled for the future, store it for the cron worker to publish later.
   if (scheduledFor) {
     const scheduledDate = new Date(scheduledFor);
+    if (Number.isNaN(scheduledDate.getTime())) {
+      return fail(400, "scheduledFor is not a valid date");
+    }
     if (scheduledDate > new Date()) {
-      await supabase
+      const { error: insertError } = await supabase
         .from("scheduled_posts_v2")
         .insert({
           user_id: user.id,
+          // Required FK — without it the insert violates NOT NULL and the
+          // schedule silently fails. Bind the post to the account that will
+          // publish it.
+          linkedin_account_id: linkedinAccount.id,
           text: postContent,
-          scheduled_for: scheduledFor,
+          scheduled_for: scheduledDate.toISOString(),
           status: "scheduled",
         });
 
-      return ok({ message: "Post scheduled successfully" });
+      if (insertError) {
+        return fail(500, `Failed to schedule post: ${insertError.message}`);
+      }
+
+      return ok({ message: "Post scheduled successfully", scheduledFor: scheduledDate.toISOString() });
     }
   }
 
-  // Check token expiry
-  const tokenExpiry = new Date(linkedinAccount.token_expires_at);
-  if (tokenExpiry < new Date()) {
-    return fail(401, "LinkedIn token expired. Please reconnect your LinkedIn account.");
+  // Publish immediately via the shared helper.
+  const result = await publishToLinkedIn(linkedinAccount, postContent);
+
+  if (!result.ok) {
+    const status = result.code === "TOKEN_EXPIRED" ? 401 : 400;
+    return fail(status, result.error);
   }
 
-  // Publish to LinkedIn using UGC Posts API
-  try {
-    const authorUrn = `urn:li:person:${linkedinAccount.linkedin_id}`;
-
-    const publishResponse = await fetch("https://api.linkedin.com/v2/ugcPosts", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${linkedinAccount.access_token}`,
-        "Content-Type": "application/json",
-        "X-Restli-Protocol-Version": "2.0.0",
-      },
-      body: JSON.stringify({
-        author: authorUrn,
-        lifecycleState: "PUBLISHED",
-        specificContent: {
-          "com.linkedin.ugc.ShareContent": {
-            shareCommentary: {
-              text: postContent,
-            },
-            shareMediaCategory: "NONE",
-          },
-        },
-        visibility: {
-          "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
-        },
-      }),
-    });
-
-    const responseText = await publishResponse.text();
-
-    if (!publishResponse.ok) {
-      console.error("LinkedIn publish failed:", responseText);
-      return fail(400, `Failed to publish to LinkedIn: ${responseText}`);
-    }
-
-    const publishedPost = JSON.parse(responseText);
-    const linkedinPostId = publishedPost.id;
-
-    // Update post status in database if postId provided
-    if (postId) {
-      await supabase
-        .from("generated_posts")
-        .update({
-          status: "published",
-          linkedin_post_id: linkedinPostId,
-          published_at: new Date().toISOString(),
-        })
-        .eq("id", postId);
-    }
-
-    return ok({
-      message: "Post published to LinkedIn successfully",
-      linkedinPostId,
-    });
-  } catch (error: any) {
-    console.error("LinkedIn publish error:", error);
-    return fail(500, `Failed to publish post: ${error.message}`);
+  // Update post status in database if postId provided
+  if (postId) {
+    await supabase
+      .from("generated_posts")
+      .update({
+        status: "published",
+        linkedin_post_id: result.linkedinPostId,
+        published_at: new Date().toISOString(),
+      })
+      .eq("id", postId);
   }
+
+  return ok({
+    message: "Post published to LinkedIn successfully",
+    linkedinPostId: result.linkedinPostId,
+  });
 });

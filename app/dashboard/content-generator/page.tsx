@@ -14,7 +14,6 @@ import {
   Sparkles,
   Wand2,
   Youtube,
-  Zap,
 } from "lucide-react";
 import Button from "@/components/Common/Button";
 import Card from "@/components/Common/Card";
@@ -53,6 +52,86 @@ export default function ContentGeneratorPage() {
   const [scheduling, setScheduling] = useState<GeneratedPost | null>(null);
   const [sort, setSort] = useState<SortKey>("reach");
   const [copied, setCopied] = useState(false);
+  const [scheduleBusy, setScheduleBusy] = useState(false);
+  const [scheduleNotice, setScheduleNotice] = useState<
+    { kind: "success" | "error"; text: string } | null
+  >(null);
+
+  /**
+   * Convert a wall-clock date/time in the given IANA timezone to a UTC ISO
+   * string, so the server stores the exact instant the user intended
+   * regardless of the browser's local timezone.
+   */
+  function zonedToUtcIso(date: string, time: string, timeZone: string) {
+    const [y, mo, d] = date.split("-").map(Number);
+    const [h, mi] = time.split(":").map(Number);
+    const utcGuess = Date.UTC(y, mo - 1, d, h, mi);
+    const dtf = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      hour12: false,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    const parts = Object.fromEntries(
+      dtf.formatToParts(new Date(utcGuess)).map((p) => [p.type, p.value]),
+    );
+    const asUtc = Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+      Number(parts.hour),
+      Number(parts.minute),
+      Number(parts.second),
+    );
+    const offset = asUtc - utcGuess;
+    return new Date(utcGuess - offset).toISOString();
+  }
+
+  async function handleSchedule(when: { date: string; time: string; tz: string }) {
+    if (!scheduling) return;
+    const scheduledFor = zonedToUtcIso(when.date, when.time, when.tz);
+
+    if (new Date(scheduledFor).getTime() <= Date.now()) {
+      setScheduleNotice({ kind: "error", text: "Pick a date and time in the future." });
+      return;
+    }
+
+    setScheduleBusy(true);
+    setScheduleNotice(null);
+    try {
+      const res = await fetch("/api/linkedin/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: scheduling.text, scheduledFor }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setScheduleNotice({
+          kind: "error",
+          text: data.error ?? "Could not schedule the post. Please try again.",
+        });
+        return;
+      }
+
+      setScheduleNotice({
+        kind: "success",
+        text: `Scheduled for ${new Date(scheduledFor).toLocaleString()}. It will post to LinkedIn automatically.`,
+      });
+      setScheduling(null);
+    } catch {
+      setScheduleNotice({
+        kind: "error",
+        text: "Network error while scheduling. Please try again.",
+      });
+    } finally {
+      setScheduleBusy(false);
+    }
+  }
 
   // Source rules
   const canSubmit =
@@ -202,9 +281,8 @@ export default function ContentGeneratorPage() {
             </span>
           )}
           <span className="hidden sm:inline">·</span>
-          <span className="hidden sm:inline">
-            <span className="font-semibold text-ink">87</span> generations left
-            today
+          <span className="hidden sm:inline text-neutral-500">
+            AI-powered LinkedIn post generator
           </span>
         </div>
         <button className="inline-flex items-center gap-1.5 rounded-md border border-neutral-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-neutral-700 transition-colors hover:bg-neutral-50">
@@ -213,9 +291,9 @@ export default function ContentGeneratorPage() {
         </button>
       </header>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[340px_minmax(0,1fr)_360px]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[280px_minmax(0,1fr)_300px]">
         {/* LEFT: Brief */}
-        <Card className="h-fit xl:sticky xl:top-20">
+        <Card className="xl:sticky xl:top-20 xl:max-h-[calc(100vh-5.5rem)] xl:overflow-y-auto">
           <div className="mb-5">
             <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
               Brief
@@ -327,7 +405,7 @@ export default function ContentGeneratorPage() {
         </div>
 
         {/* RIGHT: Preview & Coaching */}
-        <div className="h-fit space-y-4 xl:sticky xl:top-20">
+        <div className="space-y-4 xl:sticky xl:top-20 xl:max-h-[calc(100vh-5.5rem)] xl:overflow-y-auto">
           <LinkedInPreviewCard
             text={selected?.text}
             hashtags={selected?.hashtags ?? []}
@@ -335,19 +413,13 @@ export default function ContentGeneratorPage() {
 
           {selected ? (
             <Card>
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
-                    Coaching
-                  </span>
-                  <h3 className="mt-1 text-sm font-semibold tracking-[-0.01em] text-ink">
-                    Why this works
-                  </h3>
-                </div>
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-success ring-1 ring-inset ring-emerald-100">
-                  <Zap className="h-2.5 w-2.5" />
-                  94% match
+              <div className="mb-4">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+                  Coaching
                 </span>
+                <h3 className="mt-1 text-sm font-semibold tracking-[-0.01em] text-ink">
+                  Post analysis
+                </h3>
               </div>
 
               <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
@@ -355,9 +427,18 @@ export default function ContentGeneratorPage() {
                   label="Est. reach"
                   value={formatNumber(selected.estimatedReach)}
                 />
-                <Metric label="Read time" value="42s" />
-                <Metric label="Best time" value="Tue 9AM" />
-                <Metric label="Hook score" value="8.4 / 10" />
+                <Metric
+                  label="Read time"
+                  value={`${Math.max(1, Math.round(selected.characterCount / 5 / 200))} min`}
+                />
+                <Metric
+                  label="Best time"
+                  value={selected.suggestedBestTime ?? "—"}
+                />
+                <Metric
+                  label="Characters"
+                  value={selected.characterCount.toLocaleString()}
+                />
               </div>
 
               <ul className="mt-4 space-y-2 border-t border-neutral-100 pt-4">
@@ -377,30 +458,30 @@ export default function ContentGeneratorPage() {
                 <Insight
                   text={
                     <>
-                      Strong angle for{" "}
+                      Optimised for{" "}
                       <span className="font-medium text-ink">
                         {settings.industry}
                       </span>{" "}
-                      audiences.
+                      audience with{" "}
+                      <span className="font-medium text-ink">
+                        {settings.tone.toLowerCase()}
+                      </span>{" "}
+                      tone.
                     </>
                   }
                 />
                 <Insight
                   text={
                     <>
-                      Hook lands in the first 8 words — beats{" "}
-                      <span className="font-medium text-ink">72%</span> of your
-                      recent posts.
+                      {selected.hashtags.length > 0
+                        ? `${selected.hashtags.length} hashtags added for discoverability.`
+                        : "Consider adding 2–3 hashtags to boost discoverability."}
                     </>
                   }
+                  warn={selected.hashtags.length === 0}
                 />
                 <Insight
-                  text={
-                    <>
-                      Add 1–2 line breaks after the hook for scroll-stoppage on
-                      mobile.
-                    </>
-                  }
+                  text="Add 1–2 line breaks after the opening hook for better mobile readability."
                   warn
                 />
               </ul>
@@ -444,8 +525,24 @@ export default function ContentGeneratorPage() {
         isOpen={!!scheduling}
         onClose={() => setScheduling(null)}
         preview={scheduling?.text}
-        onSchedule={() => setScheduling(null)}
+        busy={scheduleBusy}
+        onSchedule={handleSchedule}
       />
+
+      {scheduleNotice && (
+        <div
+          role="status"
+          className={cn(
+            "fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-lg px-4 py-2 text-sm shadow-lg ring-1",
+            scheduleNotice.kind === "success"
+              ? "bg-emerald-50 text-success ring-emerald-100"
+              : "bg-red-50 text-red-700 ring-red-100",
+          )}
+          onClick={() => setScheduleNotice(null)}
+        >
+          {scheduleNotice.text}
+        </div>
+      )}
     </div>
   );
 }

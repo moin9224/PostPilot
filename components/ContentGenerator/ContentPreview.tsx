@@ -4,7 +4,6 @@ import {
   Calendar,
   Check,
   Copy,
-  MoreHorizontal,
   RefreshCw,
   Trash2,
   TrendingUp,
@@ -123,7 +122,7 @@ export default function ContentPreview({
 
             {/* Footer toolbar */}
             <div className="flex items-center justify-between border-t border-neutral-100 px-3 py-2">
-              <div className="flex items-center gap-0.5">
+              <div className="flex min-w-0 items-center gap-0.5">
                 <ToolbarBtn
                   onClick={(e) => {
                     e.stopPropagation();
@@ -161,10 +160,11 @@ export default function ContentPreview({
                   e.stopPropagation();
                   onSchedule(post);
                 }}
-                className="inline-flex items-center gap-1.5 rounded-md bg-ink px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-neutral-800"
+                title="Schedule this post"
+                className="ml-2 flex-shrink-0 inline-flex items-center gap-1.5 rounded-md bg-ink px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-neutral-800"
               >
-                <Calendar className="h-3 w-3" />
-                Schedule
+                <Calendar className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Schedule</span>
               </button>
             </div>
           </article>

@@ -67,20 +67,16 @@ export default function GeneratorPanel({
 
       {/* Industry & Audience */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1">
-        <FieldLabel label="Industry">
-          <IndustrySelector
-            value={settings.industry}
-            onChange={(industry) => update("industry", industry)}
-          />
-        </FieldLabel>
-        <FieldLabel label="Audience">
-          <Select
-            options={AUDIENCES}
-            value={settings.audience}
-            onChange={(e) => update("audience", e.target.value)}
-            aria-label="Audience"
-          />
-        </FieldLabel>
+        <IndustrySelector
+          value={settings.industry}
+          onChange={(industry) => update("industry", industry)}
+        />
+        <Select
+          label="Audience"
+          options={AUDIENCES}
+          value={settings.audience}
+          onChange={(e) => update("audience", e.target.value)}
+        />
       </div>
 
       {/* Length */}
@@ -137,19 +133,3 @@ export default function GeneratorPanel({
   );
 }
 
-function FieldLabel({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-        {label}
-      </span>
-      {children}
-    </div>
-  );
-}

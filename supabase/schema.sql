@@ -204,7 +204,7 @@ create table if not exists public.scheduled_posts_v2 (
   -- Scheduling
   scheduled_for timestamptz not null,
   status varchar not null default 'scheduled'
-    check (status in ('scheduled', 'published', 'failed')),
+    check (status in ('scheduled', 'publishing', 'published', 'failed')),
 
   -- Publishing metadata
   published_at timestamptz,

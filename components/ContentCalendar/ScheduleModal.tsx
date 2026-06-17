@@ -19,6 +19,12 @@ interface ScheduleModalProps {
   onClose: () => void;
   /** Optional preview of the post being scheduled. */
   preview?: string;
+  /** Disables the form while a schedule request is in flight. */
+  busy?: boolean;
+  /**
+   * Called with the chosen date/time/timezone. The parent is responsible for
+   * closing the modal (e.g. on success) so errors can keep it open.
+   */
   onSchedule: (when: { date: string; time: string; tz: string }) => void;
 }
 
@@ -26,6 +32,7 @@ export default function ScheduleModal({
   isOpen,
   onClose,
   preview,
+  busy = false,
   onSchedule,
 }: ScheduleModalProps) {
   const [date, setDate] = useState("");
@@ -40,7 +47,6 @@ export default function ScheduleModal({
     }
     setError("");
     onSchedule({ date, time, tz });
-    onClose();
   }
 
   return (
@@ -50,10 +56,12 @@ export default function ScheduleModal({
       title="Schedule post"
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" onClick={onClose} disabled={busy}>
             Cancel
           </Button>
-          <Button onClick={handleSchedule}>Schedule</Button>
+          <Button onClick={handleSchedule} disabled={busy}>
+            {busy ? "Scheduling…" : "Schedule"}
+          </Button>
         </>
       }
     >
