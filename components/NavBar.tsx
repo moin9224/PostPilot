@@ -95,7 +95,7 @@ export default function NavBar({ title, description, onMenu }: NavBarProps) {
               placeholder="Search posts, topics, people…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 w-72 rounded-md border border-neutral-200 bg-white pl-9 pr-12 text-[13px] text-ink placeholder:text-neutral-400 transition-colors focus:border-neutral-400 focus:outline-none"
+              className="h-9 w-48 md:w-64 lg:w-72 rounded-md border border-neutral-200 bg-white pl-9 pr-12 text-[13px] text-ink placeholder:text-neutral-400 transition-colors focus:border-neutral-400 focus:outline-none"
             />
             <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 rounded border border-neutral-200 bg-neutral-50 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 lg:inline-flex">
               <Command className="h-2.5 w-2.5" />K

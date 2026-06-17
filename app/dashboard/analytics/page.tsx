@@ -66,7 +66,7 @@ export default async function AnalyticsPage() {
       </section>
 
       <Card padded={false}>
-        <div className="border-b border-neutral-100 px-6 py-4">
+        <div className="border-b border-neutral-100 px-4 sm:px-6 py-4">
           <h3 className="text-base font-semibold text-ink">
             Top performing posts
           </h3>
@@ -94,7 +94,7 @@ export default async function AnalyticsPage() {
             {posts.slice(0, 20).map((post) => (
               <li
                 key={post.id}
-                className="flex items-start gap-4 px-6 py-4 hover:bg-neutral-50/70"
+                className="flex items-start gap-4 px-4 sm:px-6 py-4 hover:bg-neutral-50/70"
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-ink line-clamp-2">

@@ -138,7 +138,7 @@ export default function SettingsPage() {
       <Card>
         <SectionTitle>LinkedIn connection</SectionTitle>
         {linkedinAccount ? (
-          <div className="flex items-center justify-between rounded-md border border-neutral-200 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-md border border-neutral-200 p-4">
             <div className="flex items-center gap-3">
               {linkedinAccount.profile_photo_url ? (
                 <img
@@ -151,12 +151,12 @@ export default function SettingsPage() {
                   <Linkedin className="h-5 w-5" />
                 </span>
               )}
-              <div>
+              <div className="min-w-0">
                 <p className="flex items-center gap-1.5 text-sm font-medium text-ink">
                   Connected
-                  <CheckCircle2 className="h-4 w-4 text-success" />
+                  <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
                 </p>
-                <p className="text-xs text-neutral-500">
+                <p className="truncate text-xs text-neutral-500">
                   {linkedinAccount.profile_name} · {linkedinAccount.profile_email}
                 </p>
               </div>
@@ -173,7 +173,7 @@ export default function SettingsPage() {
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between rounded-md border border-neutral-200 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-md border border-neutral-200 p-4">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-md bg-blue-50 text-blue-600">
                 <Linkedin className="h-5 w-5" />

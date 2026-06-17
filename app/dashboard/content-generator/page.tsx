@@ -617,7 +617,7 @@ function LinkedInPreviewCard({ text, hashtags }: { text?: string; hashtags: stri
               { icon: <Repeat2 className="h-3.5 w-3.5" />, label: "Repost" },
               { icon: <Send className="h-3.5 w-3.5" />, label: "Send" },
             ].map(({ icon, label }) => (
-              <button key={label} className="flex items-center gap-1.5 rounded-md px-2 py-1 hover:bg-neutral-100">
+              <button key={label} className="flex items-center gap-1.5 rounded-md px-2 py-2 sm:py-1 hover:bg-neutral-100">
                 {icon} <span className="hidden sm:inline">{label}</span>
               </button>
             ))}

@@ -84,7 +84,7 @@ export default async function DashboardHome() {
   return (
     <div className="min-h-screen bg-[#F7F7F8]">
       {/* ── Top header bar ── */}
-      <div className="flex items-center justify-between border-b border-neutral-200 bg-white px-6 py-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-neutral-200 bg-white px-4 sm:px-6 py-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-ink">
             Welcome back, {displayName}.
@@ -121,20 +121,20 @@ export default async function DashboardHome() {
           { label: "Estimated reach", value: totalReach > 0 ? totalReach.toLocaleString() : "0", icon: Eye, accent: false },
           { label: "Published", value: publishedCount.toString(), icon: CheckCircle2, accent: true },
         ].map((s) => (
-          <div key={s.label} className="flex items-center gap-4 bg-white px-6 py-5">
+          <div key={s.label} className="flex items-center gap-3 bg-white px-4 py-4 sm:px-6 sm:py-5">
             <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl ${s.accent ? "bg-brand/10 text-brand" : "bg-neutral-100 text-neutral-500"}`}>
               <s.icon className="h-5 w-5" />
             </div>
-            <div>
-              <p className="text-xs font-medium text-neutral-500">{s.label}</p>
-              <p className="mt-0.5 text-xl font-semibold tracking-tight text-ink">{s.value}</p>
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-neutral-500 truncate">{s.label}</p>
+              <p className="mt-0.5 text-xl font-semibold tracking-tight text-ink truncate">{s.value}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* ── Main content ── */}
-      <div className="grid grid-cols-1 gap-5 p-5 lg:grid-cols-[1fr_340px]">
+      <div className="grid grid-cols-1 gap-5 p-4 sm:p-5 lg:grid-cols-[1fr_340px]">
 
         {/* LEFT column */}
         <div className="space-y-5">
