@@ -809,47 +809,167 @@ function Workflow() {
   const steps = [
     {
       n: "01",
-      title: "Connect your LinkedIn",
-      copy: "One OAuth click. We never store your password and you can disconnect any time.",
+      icon: Linkedin,
+      label: "Connect",
+      title: "Connect your LinkedIn in one click.",
+      copy: "OAuth — no password stored, no risk. Disconnect any time from your settings.",
+      badge: "Takes 30 seconds",
+      visual: (
+        <div className="flex flex-col items-center justify-center gap-3 py-6">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0A66C2] shadow-lg shadow-[#0A66C2]/30">
+            <Linkedin className="h-8 w-8 text-white" />
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <div className="h-2 w-2 rounded-full bg-emerald-400" />
+            <div className="h-8 w-0.5 bg-gradient-to-b from-emerald-400 to-transparent" />
+          </div>
+          <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 shadow-sm">
+            <div className="flex items-center gap-2 text-[13px] font-medium text-ink">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              Connected as <span className="text-brand">@yourhandle</span>
+            </div>
+          </div>
+        </div>
+      ),
     },
     {
       n: "02",
-      title: "Generate, edit, schedule",
-      copy: "Draft posts in your voice, edit inline, and queue them for peak attention windows.",
+      icon: Sparkles,
+      label: "Create",
+      title: "Generate posts in your voice.",
+      copy: "Pick a topic, set your tone, get three ready-to-publish drafts ranked by predicted reach.",
+      badge: "Under 30 seconds",
+      visual: (
+        <div className="space-y-2 py-4">
+          {[
+            { pct: "94%", preview: "We shipped our first AI feature last week. Here's what nobody tells you…" },
+            { pct: "81%", preview: "After 6 months building in public, the one thing that changed everything was…" },
+            { pct: "76%", preview: "Most founders get this wrong: the difference between reach and resonance…" },
+          ].map((v, i) => (
+            <div
+              key={i}
+              className={cn(
+                "rounded-lg border px-3 py-2.5 text-[12px] leading-relaxed",
+                i === 0
+                  ? "border-brand/40 bg-brand/5 text-ink"
+                  : "border-neutral-200 bg-neutral-50/60 text-neutral-500",
+              )}
+            >
+              <div className="mb-1 flex items-center gap-1.5">
+                <span className={cn("h-1.5 w-1.5 rounded-full", i === 0 ? "bg-brand" : "bg-neutral-300")} />
+                <span className={cn("text-[10px] font-semibold uppercase tracking-wider", i === 0 ? "text-brand" : "text-neutral-400")}>
+                  Variation {i + 1} · {v.pct} match
+                </span>
+              </div>
+              {v.preview}
+              {i === 0 && <span className="ml-0.5 inline-block h-3 w-0.5 translate-y-0.5 animate-pulse bg-brand" />}
+            </div>
+          ))}
+        </div>
+      ),
     },
     {
       n: "03",
-      title: "Learn what actually worked",
-      copy: "Read clear analytics, run the Reach Debugger, and double down on what wins.",
+      icon: BarChart3,
+      label: "Grow",
+      title: "Learn what works. Double down.",
+      copy: "Clear analytics and the Reach Debugger tell you exactly what to fix and what to repeat.",
+      badge: "Always on",
+      visual: (
+        <div className="space-y-3 py-4">
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-semibold tracking-[-0.02em] text-ink tabular-nums">182k</span>
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-success ring-1 ring-inset ring-emerald-100">
+              <ArrowUpRight className="h-2.5 w-2.5" />24%
+            </span>
+          </div>
+          <div className="flex h-14 items-end gap-1">
+            {[40, 55, 35, 70, 60, 90, 75].map((h, i) => (
+              <div key={i} className={cn("flex-1 rounded-t", i === 5 ? "bg-brand" : "bg-brand/25")} style={{ height: `${h}%` }} />
+            ))}
+          </div>
+          <div className="rounded-lg border border-neutral-200 bg-white p-3">
+            <div className="flex items-center gap-2 text-[12px]">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-[10px]">⚡</span>
+              <span className="font-medium text-ink">Reach tip:</span>
+              <span className="text-neutral-500">Post Tuesday 9 AM for +38% reach</span>
+            </div>
+          </div>
+        </div>
+      ),
     },
   ];
+
   return (
-    <section
-      id="workflow"
-      className="border-b border-neutral-200/70 bg-white"
-    >
+    <section id="workflow" className="border-b border-neutral-200/70 bg-[#FAFAF9]">
       <div className="mx-auto max-w-6xl px-6 py-24">
+
+        {/* Header */}
         <div className="mx-auto max-w-2xl text-center">
           <SectionEyebrow>How it works</SectionEyebrow>
           <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-[-0.02em] text-ink sm:text-4xl">
-            Three steps from blank page to compounding growth.
+            Blank page to growing audience.<br />
+            <span className="text-neutral-400">Three steps. Under a minute.</span>
           </h2>
         </div>
 
-        <div className="mt-14 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 md:grid-cols-3">
-          {steps.map((s) => (
-            <div key={s.n} className="bg-white p-7">
-              <div className="text-xs font-mono font-semibold tracking-wider text-brand">
-                {s.n}
+        {/* Steps */}
+        <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3">
+          {steps.map((s, idx) => (
+            <div
+              key={s.n}
+              className="relative flex flex-col rounded-2xl border border-neutral-200 bg-white p-6 shadow-[0_2px_12px_-4px_rgba(15,23,42,0.06)]"
+            >
+              {/* Connector arrow on desktop */}
+              {idx < steps.length - 1 && (
+                <div className="absolute -right-3.5 top-1/2 z-10 hidden -translate-y-1/2 md:block">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-200 bg-white shadow-sm text-neutral-400">
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </div>
+                </div>
+              )}
+
+              {/* Step badge */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                    <s.icon className="h-4 w-4" />
+                  </span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+                    Step {s.n}
+                  </span>
+                </div>
+                <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-medium text-neutral-500">
+                  {s.badge}
+                </span>
               </div>
-              <h3 className="mt-3 text-lg font-semibold tracking-[-0.01em] text-ink">
-                {s.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-                {s.copy}
-              </p>
+
+              {/* Visual mockup */}
+              <div className="mt-4 rounded-xl border border-neutral-100 bg-neutral-50/80 px-4">
+                {s.visual}
+              </div>
+
+              {/* Copy */}
+              <div className="mt-5">
+                <h3 className="text-base font-semibold leading-snug tracking-[-0.01em] text-ink">
+                  {s.title}
+                </h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-neutral-500">
+                  {s.copy}
+                </p>
+              </div>
             </div>
           ))}
+        </div>
+
+        {/* Bottom CTA */}
+        <div className="mt-12 flex justify-center">
+          <Link href="/auth/signup">
+            <Button className="bg-ink hover:bg-neutral-800">
+              Start your first post free
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
@@ -1122,17 +1242,15 @@ function CreatorsWall() {
 
   return (
     <section className="relative overflow-hidden border-b border-neutral-200/70 bg-white">
-      <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32">
-        {/* Tile cluster */}
+      <div className="relative py-24 sm:py-32">
+        {/* Full-bleed photo grid */}
         <div
-          className="relative grid gap-0.5 grid-cols-[repeat(20,minmax(0,1fr))] sm:grid-cols-[repeat(26,minmax(0,1fr))] lg:grid-cols-[repeat(33,minmax(0,1fr))]"
+          className="grid gap-0.5 grid-cols-[repeat(20,minmax(0,1fr))] sm:grid-cols-[repeat(26,minmax(0,1fr))] lg:grid-cols-[repeat(33,minmax(0,1fr))]"
           style={{
-            // Donut mask: large hole in the center for the copy, fade at
-            // the outer edges so the cluster reads as a soft cloud.
             WebkitMaskImage:
-              "radial-gradient(ellipse 50% 65% at center, transparent 0%, transparent 48%, black 68%, black 84%, transparent 100%)",
+              "radial-gradient(ellipse 100% 100% at center, black 30%, transparent 80%)",
             maskImage:
-              "radial-gradient(ellipse 50% 65% at center, transparent 0%, transparent 48%, black 68%, black 84%, transparent 100%)",
+              "radial-gradient(ellipse 100% 100% at center, black 30%, transparent 80%)",
           }}
         >
           {CREATOR_PROFILES.map((profile, i) => (
@@ -1141,7 +1259,7 @@ function CreatorsWall() {
               type="button"
               onClick={() => setActiveIdx(i)}
               aria-label={`View profile of ${profile.name}`}
-              className="group relative aspect-square w-full overflow-hidden rounded-[6px] ring-1 ring-inset ring-white/60 transition-transform duration-200 hover:z-10 hover:scale-[1.6] hover:rounded-md hover:shadow-[0_8px_24px_-8px_rgba(15,23,42,0.4)] hover:ring-2 hover:ring-brand focus:outline-none focus-visible:z-10 focus-visible:scale-[1.6] focus-visible:ring-2 focus-visible:ring-brand"
+              className="group relative aspect-square w-full overflow-hidden transition-transform duration-200 hover:z-10 hover:scale-[1.8] hover:shadow-[0_8px_24px_-8px_rgba(15,23,42,0.4)] focus:outline-none focus-visible:z-10 focus-visible:scale-[1.8]"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -1155,14 +1273,13 @@ function CreatorsWall() {
           ))}
         </div>
 
-        {/* Soft white wash behind the copy — guarantees legibility even
-            if a few masked tiles bleed into the safe zone. */}
+        {/* White radial center wash for text legibility */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse 38% 45% at center, #ffffff 35%, rgba(255,255,255,0.92) 55%, rgba(255,255,255,0) 80%)",
+              "radial-gradient(ellipse 55% 60% at center, rgba(255,255,255,1) 0%, rgba(255,255,255,0.97) 35%, rgba(255,255,255,0.7) 60%, rgba(255,255,255,0) 80%)",
           }}
         />
 
