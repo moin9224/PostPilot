@@ -10,6 +10,7 @@ import {
   Eye,
   Globe,
   Heart,
+  Image as ImageIcon,
   MessageCircle,
   Monitor,
   PlusCircle,
@@ -18,6 +19,8 @@ import {
   Send,
   Smartphone,
   Sparkles,
+  Trash2,
+  Upload,
   X,
   Zap,
 } from "lucide-react";
@@ -86,6 +89,206 @@ const STATUS_LABEL: Record<PostStatus, string> = {
 };
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+/* ─── Media Tab ──────────────────────────────────────────────────────────── */
+
+interface MediaTabProps {
+  onAttach: (url: string) => void;
+  attached: string | null;
+  onRemove: () => void;
+}
+
+function MediaTab({ onAttach, attached, onRemove }: MediaTabProps) {
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [genError, setGenError] = useState("");
+  const [gallery, setGallery] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleGenerate() {
+    if (!aiPrompt.trim() || generating) return;
+    setGenerating(true);
+    setGenError("");
+    try {
+      const res = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: aiPrompt.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.url) {
+        setGenError(data.error ?? "Image generation failed. Try again.");
+        return;
+      }
+      setGallery((prev) => [data.url, ...prev]);
+      setAiPrompt("");
+    } catch {
+      setGenError("Network error. Please try again.");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    files.forEach((file) => {
+      if (!file.type.startsWith("image/")) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const url = ev.target?.result as string;
+        if (url) setGallery((prev) => [url, ...prev]);
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = "";
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith("image/"));
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const url = ev.target?.result as string;
+        if (url) setGallery((prev) => [url, ...prev]);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  return (
+    <div className="flex flex-1 flex-col overflow-hidden">
+      {/* AI Generate section */}
+      <div className="border-b border-neutral-100 px-4 pt-3 pb-3">
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-neutral-400">
+          Generate with AI
+        </p>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={aiPrompt}
+            onChange={(e) => setAiPrompt(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
+            placeholder="e.g. professional team meeting, growth chart…"
+            className="flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-[12px] text-ink placeholder:text-neutral-400 focus:border-violet-300 focus:bg-white focus:outline-none"
+          />
+          <button
+            onClick={handleGenerate}
+            disabled={!aiPrompt.trim() || generating}
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-violet-600 text-white transition-colors hover:bg-violet-700 disabled:opacity-40"
+          >
+            {generating ? (
+              <Sparkles className="h-4 w-4 animate-pulse" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+          </button>
+        </div>
+        {genError && (
+          <p className="mt-1.5 text-[11px] text-red-500">{genError}</p>
+        )}
+        {generating && (
+          <div className="mt-2 flex items-center gap-2 text-[11px] text-violet-500">
+            <Sparkles className="h-3 w-3 animate-pulse" />
+            Generating image with DALL·E 3…
+          </div>
+        )}
+      </div>
+
+      {/* Upload from device */}
+      <div className="border-b border-neutral-100 px-4 py-3">
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-neutral-400">
+          Upload from device
+        </p>
+        <div
+          onDrop={handleDrop}
+          onDragOver={(e) => e.preventDefault()}
+          onClick={() => fileInputRef.current?.click()}
+          className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-neutral-200 py-5 text-center transition-colors hover:border-violet-300 hover:bg-violet-50/30"
+        >
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-100">
+            <Upload className="h-4 w-4 text-neutral-500" />
+          </div>
+          <div>
+            <p className="text-[12px] font-semibold text-neutral-600">Click to upload or drag &amp; drop</p>
+            <p className="text-[11px] text-neutral-400">PNG, JPG, GIF, WEBP up to 10MB</p>
+          </div>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={handleFileUpload}
+        />
+      </div>
+
+      {/* Gallery */}
+      <div className="flex-1 overflow-y-auto px-4 py-3">
+        {gallery.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <ImageIcon className="h-8 w-8 text-neutral-200 mb-2" />
+            <p className="text-[12px] text-neutral-400">No images yet</p>
+            <p className="text-[11px] text-neutral-300">Generate or upload images above</p>
+          </div>
+        ) : (
+          <>
+            {attached && (
+              <div className="mb-3 flex items-center justify-between rounded-lg bg-blue-50 px-3 py-2 ring-1 ring-blue-100">
+                <p className="text-[11px] font-semibold text-blue-700">1 image attached to post</p>
+                <button onClick={onRemove} className="text-[11px] font-semibold text-blue-500 hover:text-blue-700">Remove</button>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-2">
+              {gallery.map((url, i) => {
+                const isAttached = attached === url;
+                return (
+                  <div key={i} className={cn(
+                    "group relative overflow-hidden rounded-lg border-2 transition-all",
+                    isAttached ? "border-blue-500 ring-2 ring-blue-200" : "border-transparent hover:border-neutral-300",
+                  )}>
+                    <img
+                      src={url}
+                      alt={`Image ${i + 1}`}
+                      className="h-28 w-full object-cover"
+                    />
+                    {/* Overlay actions */}
+                    <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                      <button
+                        onClick={() => isAttached ? onRemove() : onAttach(url)}
+                        className={cn(
+                          "rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-white transition-colors",
+                          isAttached ? "bg-blue-500 hover:bg-blue-600" : "bg-white/20 hover:bg-white/30 backdrop-blur-sm",
+                        )}
+                      >
+                        {isAttached ? "✓ Attached" : "Use"}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (isAttached) onRemove();
+                          setGallery((prev) => prev.filter((_, j) => j !== i));
+                        }}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/80 text-white hover:bg-red-600"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    {isAttached && (
+                      <div className="absolute bottom-1 left-1 rounded-md bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
+                        Attached
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Composer Modal ─────────────────────────────────────────────────────── */
 
 type ComposerTab = "ai" | "drafts" | "media" | "boosts";
@@ -108,6 +311,7 @@ function ComposerModal({ day, existingPosts, onClose, onScheduled }: {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [attachedImage, setAttachedImage] = useState<string | null>(null);
 
   // AI
   const [aiPrompt, setAiPrompt] = useState("");
@@ -354,13 +558,24 @@ function ComposerModal({ day, existingPosts, onClose, onScheduled }: {
             </div>
           )}
 
-          {(tab === "media" || tab === "boosts") && (
+          {tab === "media" && (
+            <MediaTab
+              onAttach={(url) => {
+                setAttachedImage(url);
+                setMode("edit");
+              }}
+              attached={attachedImage}
+              onRemove={() => setAttachedImage(null)}
+            />
+          )}
+
+          {tab === "boosts" && (
             <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
               <div className="h-10 w-10 rounded-xl bg-neutral-100 flex items-center justify-center mb-3">
                 <Sparkles className="h-5 w-5 text-neutral-400" />
               </div>
               <p className="text-[13px] font-semibold text-ink">Coming soon</p>
-              <p className="mt-1 text-[12px] text-neutral-400">This feature is in progress.</p>
+              <p className="mt-1 text-[12px] text-neutral-400">Boost features are in progress.</p>
             </div>
           )}
         </div>
@@ -442,13 +657,37 @@ function ComposerModal({ day, existingPosts, onClose, onScheduled }: {
           {/* Content area */}
           <div className="flex-1 overflow-y-auto">
             {mode === "edit" ? (
-              <textarea
-                ref={textareaRef}
-                value={postText}
-                onChange={(e) => { setPostText(e.target.value); setError(""); }}
-                placeholder="Write your LinkedIn post here…"
-                className="h-full min-h-[300px] w-full resize-none border-0 bg-white p-5 text-[14px] leading-relaxed text-ink placeholder:text-neutral-300 focus:outline-none"
-              />
+              <div className="flex h-full flex-col">
+                <textarea
+                  ref={textareaRef}
+                  value={postText}
+                  onChange={(e) => { setPostText(e.target.value); setError(""); }}
+                  placeholder="Write your LinkedIn post here…"
+                  className={cn(
+                    "w-full resize-none border-0 bg-white p-5 text-[14px] leading-relaxed text-ink placeholder:text-neutral-300 focus:outline-none",
+                    attachedImage ? "min-h-[160px]" : "min-h-[300px] flex-1"
+                  )}
+                />
+                {/* Attached image preview */}
+                {attachedImage && (
+                  <div className="relative mx-5 mb-4 overflow-hidden rounded-xl border border-neutral-200">
+                    <img
+                      src={attachedImage}
+                      alt="Attached"
+                      className="w-full object-cover max-h-48 rounded-xl"
+                    />
+                    <button
+                      onClick={() => setAttachedImage(null)}
+                      className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                    <div className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white">
+                      Image attached
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               /* Preview mode — LinkedIn card */
               <div className={cn("p-5", device === "mobile" ? "max-w-[375px] mx-auto" : "")}>
@@ -465,6 +704,9 @@ function ComposerModal({ day, existingPosts, onClose, onScheduled }: {
                     <div className="px-4 pt-3 pb-4">
                       <p className="whitespace-pre-line text-[13px] leading-relaxed text-ink">{postText}</p>
                     </div>
+                    {attachedImage && (
+                      <img src={attachedImage} alt="Post image" className="w-full object-cover max-h-52" />
+                    )}
                     <div className="flex items-center gap-1.5 border-t border-neutral-100 px-4 py-2 text-[11px] text-neutral-500">
                       <span className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-600"><Heart className="h-2 w-2 fill-white text-white" /></span>
                       <span>1,284 · 86 comments</span>
