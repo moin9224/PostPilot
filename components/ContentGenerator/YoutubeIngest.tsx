@@ -192,7 +192,7 @@ export default function YoutubeIngest({ meta, onMetaChange }: Props) {
 
       <p className="mt-2 text-[11px] leading-relaxed text-neutral-500">
         Paste any YouTube link. We&apos;ll pull the transcript, key quotes and
-        topic — Claude turns it into a LinkedIn post in your voice.
+        topic. We turn it into a LinkedIn post in your voice.
       </p>
 
       {/* Tip */}

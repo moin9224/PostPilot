@@ -116,8 +116,31 @@ function Header() {
   );
 }
 
+const HERO_BADGES = [
+  { label: "New", text: "Reach Debugger v2 is live" },
+  { label: "Feature", text: "AI post scheduling at peak hours" },
+  { label: "Update", text: "Voice matching now 3× more accurate" },
+  { label: "New", text: "Team workspaces & approval flows" },
+];
+
 /* ---------- Hero ---------- */
 function Hero() {
+  const [badgeIdx, setBadgeIdx] = useState(0);
+  const [fading, setFading] = useState(false);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setFading(true);
+      setTimeout(() => {
+        setBadgeIdx((i) => (i + 1) % HERO_BADGES.length);
+        setFading(false);
+      }, 300);
+    }, 3000);
+    return () => clearInterval(id);
+  }, []);
+
+  const badge = HERO_BADGES[badgeIdx];
+
   return (
     <section className="relative overflow-hidden border-b border-neutral-200/70">
       {/* Grid backdrop */}
@@ -143,11 +166,12 @@ function Hero() {
           <Link
             href="#features"
             className="group inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-medium text-neutral-700 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-colors hover:border-neutral-300"
+            style={{ opacity: fading ? 0 : 1, transition: "opacity 0.3s ease" }}
           >
             <span className="rounded-full bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand">
-              New
+              {badge.label}
             </span>
-            <span>Reach Debugger v2 is live</span>
+            <span>{badge.text}</span>
             <ArrowRight className="h-3 w-3 text-neutral-400 transition-transform group-hover:translate-x-0.5" />
           </Link>
 
@@ -158,9 +182,9 @@ function Hero() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-xl text-[15px] leading-relaxed text-neutral-600 sm:text-base">
-            PostPilot writes posts in your voice, schedules them when your
-            audience is awake, and tells you exactly why a post under-performed.
-            Built on Claude.
+            Write once. Reach thousands. PostPilot drafts posts in your voice,
+            queues them at peak attention, and tells you exactly what moved the
+            needle, so you stop guessing and start compounding.
           </p>
 
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -410,7 +434,7 @@ function Features() {
             icon={Sparkles}
             eyebrow="Generation"
             title="Posts that sound like you wrote them."
-            description="Claude-powered drafts tuned to your voice, audience and industry. Three variations every time, ranked by predicted reach."
+            description="Drafts tuned to your voice, audience and industry. Three variations every time, ranked by predicted reach. Pick the best in seconds."
           >
             <GenerationShowcase />
           </BentoCard>
@@ -868,7 +892,7 @@ function Testimonial() {
         <SectionEyebrow>Customer</SectionEyebrow>
         <blockquote className="mt-6 text-2xl font-medium leading-snug tracking-[-0.015em] text-ink sm:text-3xl">
           “PostPilot replaced four tools and a freelancer. We went from
-          posting twice a week to a daily cadence — and our inbound
+          posting twice a week to a daily cadence, and our inbound
           doubled in a quarter.”
         </blockquote>
         <div className="mt-8 flex items-center justify-center gap-3">
@@ -899,7 +923,7 @@ function Pricing() {
             Honest pricing. Real ROI.
           </h2>
           <p className="mt-3 text-sm text-neutral-600">
-            One post that lands pays for a year of PostPilot. Start free —
+            One post that lands pays for a year of PostPilot. Start free,
             upgrade when it&apos;s working.
           </p>
         </div>
@@ -989,7 +1013,7 @@ function Faq() {
         <div className="text-center">
           <SectionEyebrow>FAQ</SectionEyebrow>
           <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-[-0.02em] text-ink sm:text-4xl">
-            Questions, answered.
+            Everything you wanted to ask.
           </h2>
         </div>
         <div className="mt-12 divide-y divide-neutral-200 border-y border-neutral-200">
@@ -1101,7 +1125,7 @@ function CreatorsWall() {
       <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32">
         {/* Tile cluster */}
         <div
-          className="relative grid gap-1 grid-cols-[repeat(14,minmax(0,1fr))] sm:grid-cols-[repeat(18,minmax(0,1fr))] lg:grid-cols-[repeat(22,minmax(0,1fr))]"
+          className="relative grid gap-0.5 grid-cols-[repeat(20,minmax(0,1fr))] sm:grid-cols-[repeat(26,minmax(0,1fr))] lg:grid-cols-[repeat(33,minmax(0,1fr))]"
           style={{
             // Donut mask: large hole in the center for the copy, fade at
             // the outer edges so the cluster reads as a soft cloud.
@@ -1146,15 +1170,15 @@ function CreatorsWall() {
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4">
           <div className="pointer-events-auto max-w-xl text-center">
             <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
-              The creator network
+              12,400+ creators and counting
             </span>
             <h2 className="mt-3 text-3xl font-semibold leading-[1.05] tracking-[-0.03em] text-ink sm:text-5xl">
-              Built for{" "}
-              <span className="text-brand">LinkedIn creators.</span>
+              Your audience is waiting.{" "}
+              <span className="text-brand">Don&apos;t make them.</span>
             </h2>
             <p className="mx-auto mt-4 max-w-sm text-sm leading-relaxed text-neutral-600 sm:text-base">
-              Join 12,400+ creators already growing their audience with
-              PostPilot. Start your free trial today.
+              Every creator you see here posts consistently, grows monthly, and
+              never stares at a blank page. You&apos;re 7 days away from that.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link href="/auth/signup">
@@ -1319,7 +1343,7 @@ function CtaBanner() {
               <Link href="/auth/signup">
                 <Button
                   size="lg"
-                  className="bg-white text-ink hover:bg-white/90"
+                  className="bg-white !text-ink hover:bg-white/90"
                 >
                   Start free
                   <ArrowRight className="h-4 w-4" />
@@ -1329,7 +1353,7 @@ function CtaBanner() {
                 <Button
                   size="lg"
                   variant="ghost"
-                  className="text-white hover:bg-white/10"
+                  className="border border-white/30 text-white hover:bg-white/10 hover:border-white/50"
                 >
                   See pricing
                   <ArrowUpRight className="h-4 w-4" />
@@ -1346,60 +1370,56 @@ function CtaBanner() {
 /* ---------- Footer ---------- */
 function Footer() {
   return (
-    <footer className="border-t border-neutral-200/70 bg-white">
-      <div className="mx-auto max-w-6xl px-6 py-14">
-        <div className="grid grid-cols-2 gap-10 md:grid-cols-5">
-          <div className="col-span-2">
-            <Logo />
-            <p className="mt-4 max-w-xs text-sm text-neutral-600">
-              The unfair advantage for LinkedIn creators. Built on Claude.
+    <footer className="bg-ink text-white">
+      <div className="mx-auto max-w-6xl px-6">
+
+        {/* Brand + CTA strip */}
+        <div className="flex flex-col gap-6 border-b border-white/10 py-14 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <Logo light />
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/50">
+              The unfair advantage for LinkedIn creators who want to grow without burning out.
             </p>
           </div>
-          <FooterCol
-            title="Product"
-            links={[
-              ["Features", "#features"],
-              ["Pricing", "#pricing"],
-              ["FAQ", "#faq"],
-            ]}
-          />
-          <FooterCol
-            title="Company"
-            links={[
-              ["Contact", "/contact"],
-              ["Privacy", "/privacy"],
-              ["Terms", "/terms"],
-            ]}
-          />
-          <FooterCol
-            title="Connect"
-            links={[
-              ["Twitter", "https://twitter.com/postpilot"],
-              ["LinkedIn", "https://linkedin.com/company/postpilot"],
-            ]}
-          />
+          <div className="flex flex-col gap-2 sm:items-end">
+            <Link href="/auth/signup">
+              <button className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-neutral-900 transition-colors hover:bg-white/90">
+                Start free <ArrowRight className="h-4 w-4" />
+              </button>
+            </Link>
+            <span className="text-[12px] text-white/30">7 days free · No credit card</span>
+          </div>
         </div>
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-neutral-200 pt-6 text-xs text-neutral-500 sm:flex-row">
-          <span>© 2026 PostPilot. All rights reserved.</span>
-          <div className="flex items-center gap-3">
-            <a
-              href="https://twitter.com/postpilot"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Twitter"
-              className="text-neutral-400 transition-colors hover:text-ink"
-            >
-              <Twitter className="h-4 w-4" />
-            </a>
-            <a
-              href="https://linkedin.com/company/postpilot"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="LinkedIn"
-              className="text-neutral-400 transition-colors hover:text-ink"
-            >
-              <Linkedin className="h-4 w-4" />
-            </a>
+
+        {/* Nav links */}
+        <div className="grid grid-cols-2 gap-10 py-12 sm:grid-cols-4">
+          <FooterCol title="Product" links={[["Features","#features"],["How it works","#workflow"],["Pricing","#pricing"],["FAQ","/faq"]]} />
+          <FooterCol title="Company" links={[["About","/about"],["Contact","/contact"],["Blog","#"],["Careers","#"]]} />
+          <FooterCol title="Legal" links={[["Privacy","/privacy"],["Terms","/terms"],["Cookies","#"]]} />
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/40">Connect</p>
+            <div className="mt-4 flex gap-2.5">
+              <a href="https://twitter.com/postpilot" target="_blank" rel="noopener noreferrer" aria-label="Twitter"
+                className="flex h-8 w-8 items-center justify-center rounded-md bg-white/10 text-white/60 transition-colors hover:bg-white/20 hover:text-white">
+                <Twitter className="h-3.5 w-3.5" />
+              </a>
+              <a href="https://linkedin.com/company/postpilot" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"
+                className="flex h-8 w-8 items-center justify-center rounded-md bg-white/10 text-white/60 transition-colors hover:bg-white/20 hover:text-white">
+                <Linkedin className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom bar */}
+      <div className="border-t border-white/10">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 py-5 text-[12px] text-white/30 sm:flex-row">
+          <span>© 2026 PostPilot, Inc. All rights reserved.</span>
+          <div className="flex items-center gap-5">
+            <a href="/privacy" className="transition-colors hover:text-white/60">Privacy</a>
+            <a href="/terms" className="transition-colors hover:text-white/60">Terms</a>
+            <a href="/contact" className="transition-colors hover:text-white/60">Contact</a>
           </div>
         </div>
       </div>
@@ -1416,15 +1436,15 @@ function FooterCol({
 }) {
   return (
     <div>
-      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/40">
         {title}
       </div>
-      <ul className="mt-4 space-y-2.5">
+      <ul className="mt-4 space-y-3">
         {links.map(([label, href]) => (
           <li key={label}>
             <a
               href={href}
-              className="text-sm text-neutral-700 transition-colors hover:text-ink"
+              className="text-sm text-white/60 transition-colors hover:text-white"
             >
               {label}
             </a>

@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "PostPilot — AI LinkedIn Content Creator",
+  title: "PostPilot: AI LinkedIn Content Creator",
   description:
     "Generate, schedule, and analyze LinkedIn content with AI. Grow your audience on autopilot.",
   icons: {

@@ -144,22 +144,52 @@ export const FAQS: FaqItem[] = [
   {
     question: "How does the AI content generation work?",
     answer:
-      "Describe your topic, pick a tone and industry, and our AI (powered by Claude) drafts multiple ready-to-post variations complete with hashtags and a reach estimate.",
+      "You describe your topic, pick a tone and length, and PostPilot generates three ready-to-post variations in your voice. Each one comes with a predicted reach score so you can pick the strongest draft before you even hit publish.",
+  },
+  {
+    question: "Will the posts actually sound like me?",
+    answer:
+      "Yes. The more you use PostPilot, the better it learns your style: your vocabulary, sentence length, and the way you open a hook. You can also paste in past posts to seed your voice profile from day one.",
   },
   {
     question: "Can I schedule and auto-publish posts?",
     answer:
-      "Yes. Build your content calendar, pick the best times, and we'll publish automatically to your connected LinkedIn account.",
+      "Absolutely. Build your content calendar, set your preferred posting cadence, and PostPilot publishes automatically at the times your audience is most active. You can also override any slot manually.",
   },
   {
     question: "Is it safe to connect my LinkedIn account?",
     answer:
-      "We use LinkedIn's official APIs and OAuth. We never store your password and you can disconnect at any time.",
+      "We use LinkedIn's official OAuth API, the same standard used by every major scheduling tool. We never see or store your password. You can revoke access from your LinkedIn settings or from inside PostPilot at any time.",
   },
   {
-    question: "Can my whole team use it?",
+    question: "What is the Reach Debugger?",
     answer:
-      "On the Agency plan you can invite up to 20 teammates with Admin, Editor, and Viewer roles.",
+      "The Reach Debugger analyses your past posts and tells you exactly why a post underperformed: the hook, the posting time, the format, or the topic. It gives you a clear action to fix it, not just a vague score.",
+  },
+  {
+    question: "Can my whole team use PostPilot?",
+    answer:
+      "Yes. The Agency plan supports up to 20 seats with role-based access (Admin, Editor, Viewer), approval workflows so nothing goes live without sign-off, and a shared content library for on-brand assets.",
+  },
+  {
+    question: "Do I need to be a professional writer to use this?",
+    answer:
+      "Not at all. PostPilot is built for founders, operators, and subject-matter experts: people with things worth saying who don't want to spend two hours saying them. The AI handles the craft; you supply the ideas.",
+  },
+  {
+    question: "How does the free trial work?",
+    answer:
+      "You get 7 days of full Pro access with no credit card required. If you decide to upgrade, your content, settings, and voice profile carry over automatically. If not, no charge, no hassle.",
+  },
+  {
+    question: "Can I cancel any time?",
+    answer:
+      "Yes. Cancel from your account settings in seconds. You keep access until the end of your billing period and we never charge you again after that. No cancellation fees, no lengthy forms.",
+  },
+  {
+    question: "What analytics does PostPilot provide?",
+    answer:
+      "You get impressions, reactions, comments, reposts, and follower growth, all in one dashboard. You can filter by post type, topic, and time range to spot exactly what content drives results for your specific audience.",
   },
 ];
 

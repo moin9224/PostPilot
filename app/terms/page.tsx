@@ -1,254 +1,113 @@
+import MarketingShell from "@/components/Marketing/MarketingShell";
+
+const SECTIONS = [
+  {
+    title: "Agreement",
+    body: `By accessing or using PostPilot, you agree to be bound by these Terms and Conditions. If you do not agree, please do not use our service. These terms apply to all users, including visitors, registered users, and paying subscribers.`,
+  },
+  {
+    title: "Eligibility",
+    body: `You must be at least 16 years old to use PostPilot. By using the platform, you confirm that you meet this requirement and that any information you provide is accurate. If you are using PostPilot on behalf of a business, you confirm you have authority to bind that business to these terms.`,
+  },
+  {
+    title: "Your account",
+    body: `You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account. Notify us immediately at hello@postpilot.io if you suspect unauthorised access. We reserve the right to suspend or terminate accounts that violate these terms.`,
+  },
+  {
+    title: "Acceptable use",
+    body: `PostPilot is for legitimate content creation and scheduling. You agree not to use PostPilot to send spam, publish illegal or harmful content, impersonate others, scrape or reverse-engineer our platform, circumvent LinkedIn's terms of service, or engage in any activity that could damage, disable, or impair our service.`,
+  },
+  {
+    title: "LinkedIn integration",
+    body: `PostPilot integrates with LinkedIn via its official API. You are responsible for complying with LinkedIn's own terms of service at all times. We are not responsible for any account restrictions or bans LinkedIn applies to your profile, and cannot guarantee that LinkedIn's API or policies will remain unchanged.`,
+  },
+  {
+    title: "Intellectual property",
+    body: `The content you create using PostPilot is yours. We claim no ownership over your posts, drafts, or ideas. PostPilot and its underlying technology, design, and trademarks remain the property of PostPilot Inc. You may not copy, redistribute, or create derivative works from our platform without our written permission.`,
+  },
+  {
+    title: "AI-generated content",
+    body: `PostPilot uses AI to assist you in drafting content. You are solely responsible for reviewing and approving all content before publishing. We do not guarantee that AI-generated drafts are accurate, appropriate, or free from errors. Published content is your responsibility.`,
+  },
+  {
+    title: "Payments and billing",
+    body: `Paid plans are billed in advance on a monthly or annual basis. All payments are non-refundable except where required by law. You may cancel your subscription at any time; cancellation takes effect at the end of your current billing period. Prices may change with 30 days' notice.`,
+  },
+  {
+    title: "Limitation of liability",
+    body: `To the maximum extent permitted by law, PostPilot is not liable for any indirect, incidental, special, or consequential damages arising from your use of the platform. Our total liability for any claim is limited to the amount you paid us in the three months preceding the claim.`,
+  },
+  {
+    title: "Disclaimers",
+    body: `PostPilot is provided "as is" without warranties of any kind. We do not warrant that the service will be uninterrupted, error-free, or that any defects will be corrected. We make no guarantees about follower growth, reach, or engagement results.`,
+  },
+  {
+    title: "Termination",
+    body: `You may stop using PostPilot at any time. We may suspend or terminate your access if you violate these terms, with or without notice. Upon termination, your right to use the service ceases immediately. Sections on intellectual property, limitation of liability, and governing law survive termination.`,
+  },
+  {
+    title: "Changes to these terms",
+    body: `We may update these terms from time to time. We will notify you of material changes by email or prominent notice at least 14 days in advance. Continued use after changes take effect constitutes acceptance of the revised terms.`,
+  },
+  {
+    title: "Governing law",
+    body: `These terms are governed by the laws of [Jurisdiction]. Any disputes will be resolved in the courts of [Jurisdiction]. If any provision of these terms is found unenforceable, the remaining provisions continue in full force.`,
+  },
+  {
+    title: "Contact",
+    body: `Questions about these terms? Email legal@postpilot.io or write to PostPilot Inc., [Address], [City, Country].`,
+  },
+];
+
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="border-b border-neutral-200 bg-neutral-50 py-12">
-        <div className="mx-auto max-w-4xl px-6">
-          <h1 className="text-4xl font-bold tracking-[-0.02em] text-ink">
-            Terms and Conditions
-          </h1>
-          <p className="mt-2 text-neutral-600">
-            Last updated: December 2025
-          </p>
+    <MarketingShell>
+      {/* Hero */}
+      <section className="border-b border-neutral-200/70 bg-[#FAFAF9]">
+        <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
+          <div className="mx-auto max-w-2xl">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand">Legal</span>
+            <h1 className="mt-3 text-4xl font-semibold leading-[1.08] tracking-[-0.03em] text-ink sm:text-5xl">
+              Terms and Conditions
+            </h1>
+            <p className="mt-4 text-base leading-relaxed text-neutral-600">
+              Please read these carefully. By using PostPilot, you agree to the terms below. Last updated <strong className="text-ink">June 2026</strong>.
+            </p>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* Content */}
-      <div className="mx-auto max-w-4xl px-6 py-12">
-        <div className="prose prose-neutral max-w-none space-y-8">
-          {/* Agreement */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">1. Agreement to Terms</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              By accessing and using PostPilot ("the Service"), you accept and agree to be bound by the terms and
-              provision of this agreement. If you do not agree to abide by the above, please do not use this service.
-            </p>
-          </section>
+      <section className="bg-white">
+        <div className="mx-auto max-w-6xl px-6 py-16">
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-[220px_1fr]">
+            {/* Sticky nav */}
+            <aside className="hidden lg:block">
+              <nav className="sticky top-24 space-y-1">
+                {SECTIONS.map((s) => (
+                  <a
+                    key={s.title}
+                    href={`#${s.title.toLowerCase().replace(/\s+/g, "-")}`}
+                    className="block rounded-md px-3 py-1.5 text-[13px] text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-ink"
+                  >
+                    {s.title}
+                  </a>
+                ))}
+              </nav>
+            </aside>
 
-          {/* Use License */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">2. Use License</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              PostPilot grants you a limited license to access and use the Service for your personal, non-commercial use.
-              This license does not include:
-            </p>
-            <ul className="list-disc pl-6 text-neutral-700 space-y-2 mt-3">
-              <li>Modifying or copying the materials</li>
-              <li>Using the materials for any commercial purpose</li>
-              <li>Attempting to reverse engineer any software</li>
-              <li>Removing any copyright or proprietary notations</li>
-              <li>Transferring the materials to another person</li>
-              <li>Using automated tools to access the Service</li>
-            </ul>
-          </section>
-
-          {/* Disclaimer of Warranties */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">3. Disclaimer of Warranties</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              The materials on PostPilot are provided on an "as is" basis. PostPilot makes no warranties,
-              expressed or implied, and hereby disclaims and negates all other warranties including, without limitation,
-              implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement
-              of intellectual property or other violation of rights.
-            </p>
-            <p className="text-neutral-700 leading-relaxed mt-3">
-              PostPilot does not warrant that the Service will be uninterrupted, error-free, or completely secure.
-            </p>
-          </section>
-
-          {/* Limitations of Liability */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">4. Limitations of Liability</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              In no event shall PostPilot or its suppliers be liable for any damages (including, without limitation,
-              damages for loss of data or profit, or due to business interruption) arising out of the use or inability
-              to use the materials on PostPilot, even if PostPilot or an authorized representative has been notified
-              orally or in writing of the possibility of such damage.
-            </p>
-          </section>
-
-          {/* Accuracy of Materials */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">5. Accuracy of Materials</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              The materials appearing on PostPilot could include technical, typographical, or photographic errors.
-              PostPilot does not warrant that any of the materials on the Service are accurate, complete, or current.
-              PostPilot may make changes to the materials contained on the Service at any time without notice.
-            </p>
-          </section>
-
-          {/* Links */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">6. Links</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              PostPilot has not reviewed all of the sites linked to the Service and is not responsible for the contents
-              of any such linked site. The inclusion of any link does not imply endorsement by PostPilot of the site.
-              Use of any such linked website is at the user's own risk.
-            </p>
-          </section>
-
-          {/* Modifications */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">7. Modifications</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              PostPilot may revise these terms of service for the Service at any time without notice. By using this
-              service, you are agreeing to be bound by the then current version of these terms of service.
-            </p>
-          </section>
-
-          {/* Governing Law */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">8. Governing Law</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              These terms and conditions are governed by and construed in accordance with the laws of the United States,
-              and you irrevocably submit to the exclusive jurisdiction of the courts in that location.
-            </p>
-          </section>
-
-          {/* User Accounts */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">9. User Accounts</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              When you create an account with PostPilot, you must provide information that is accurate, complete,
-              and current at all times. You are responsible for:
-            </p>
-            <ul className="list-disc pl-6 text-neutral-700 space-y-2 mt-3">
-              <li>Maintaining the confidentiality of your account information and password</li>
-              <li>Accepting responsibility for all activities that occur under your account</li>
-              <li>Notifying us immediately of any unauthorized use of your account</li>
-              <li>Not using another person's account without permission</li>
-            </ul>
-          </section>
-
-          {/* Content Responsibility */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">10. Content Responsibility</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              You are responsible for any content you create, generate, or upload through PostPilot. You agree that:
-            </p>
-            <ul className="list-disc pl-6 text-neutral-700 space-y-2 mt-3">
-              <li>You own or have permission to use all content</li>
-              <li>Content does not violate any laws or third-party rights</li>
-              <li>Content is not defamatory, obscene, or harmful</li>
-              <li>You will not post spam, malware, or illegal content</li>
-              <li>You are solely responsible for any consequences of posting content</li>
-            </ul>
-          </section>
-
-          {/* Prohibited Activities */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">11. Prohibited Activities</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              You agree not to engage in any of the following prohibited activities:
-            </p>
-            <ul className="list-disc pl-6 text-neutral-700 space-y-2 mt-3">
-              <li>Harassing, threatening, or intimidating other users</li>
-              <li>Hacking, reverse engineering, or attempting to breach security</li>
-              <li>Transmitting malware, viruses, or harmful code</li>
-              <li>Scraping or data mining the Service</li>
-              <li>Violating any laws or regulations</li>
-              <li>Impersonating other users or entities</li>
-              <li>Spam or unsolicited communications</li>
-            </ul>
-          </section>
-
-          {/* Intellectual Property */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">12. Intellectual Property Rights</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              PostPilot owns or licenses all intellectual property in the Service, including but not limited to:
-            </p>
-            <ul className="list-disc pl-6 text-neutral-700 space-y-2 mt-3">
-              <li>Software, code, and technology</li>
-              <li>Logos, trademarks, and brand names</li>
-              <li>Written content and documentation</li>
-              <li>User interface and design</li>
-            </ul>
-            <p className="text-neutral-700 leading-relaxed mt-3">
-              You may not reproduce, distribute, or transmit the Service or its content without permission.
-            </p>
-          </section>
-
-          {/* Payment Terms */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">13. Payment Terms</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              If you choose a paid plan, you agree to:
-            </p>
-            <ul className="list-disc pl-6 text-neutral-700 space-y-2 mt-3">
-              <li>Provide accurate payment information</li>
-              <li>Pay all charges incurred under your account</li>
-              <li>Authorize charges to your payment method</li>
-              <li>Comply with all billing policies</li>
-            </ul>
-            <p className="text-neutral-700 leading-relaxed mt-3">
-              Pricing is subject to change with 30 days' notice. Subscription renewals will be charged automatically
-              unless canceled before the renewal date.
-            </p>
-          </section>
-
-          {/* Cancellation */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">14. Cancellation</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              You may cancel your subscription at any time through your account settings or by contacting us.
-              Cancellation becomes effective at the end of the current billing cycle. We do not provide refunds
-              for partial months.
-            </p>
-          </section>
-
-          {/* Termination */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">15. Termination</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              PostPilot reserves the right to terminate or suspend your account at any time for:
-            </p>
-            <ul className="list-disc pl-6 text-neutral-700 space-y-2 mt-3">
-              <li>Violation of these Terms and Conditions</li>
-              <li>Illegal activity or harmful conduct</li>
-              <li>Non-payment of fees</li>
-              <li>Abuse of the Service</li>
-              <li>Any reason at our discretion</li>
-            </ul>
-          </section>
-
-          {/* Indemnification */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">16. Indemnification</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              You agree to indemnify and hold harmless PostPilot from any claims, damages, or costs arising from:
-            </p>
-            <ul className="list-disc pl-6 text-neutral-700 space-y-2 mt-3">
-              <li>Your use of the Service</li>
-              <li>Your violation of these Terms</li>
-              <li>Your content or actions</li>
-              <li>Infringement claims related to your content</li>
-            </ul>
-          </section>
-
-          {/* Third-Party Services */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">17. Third-Party Services</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              PostPilot integrates with third-party services (LinkedIn, Google, Stripe, etc.). Your use of these
-              services is governed by their terms. PostPilot is not responsible for third-party service availability,
-              errors, or policy changes.
-            </p>
-          </section>
-
-          {/* Contact */}
-          <section>
-            <h2 className="text-2xl font-bold text-ink">18. Contact Information</h2>
-            <p className="text-neutral-700 leading-relaxed">
-              If you have questions about these Terms and Conditions, please contact us:
-            </p>
-            <div className="bg-neutral-50 p-4 rounded-lg mt-3 text-neutral-700">
-              <p><strong>Email:</strong> support@postpilot.io</p>
-              <p><strong>Website:</strong> https://thepostpilot.vercel.app</p>
+            {/* Body */}
+            <div className="max-w-2xl space-y-12">
+              {SECTIONS.map((s) => (
+                <section key={s.title} id={s.title.toLowerCase().replace(/\s+/g, "-")}>
+                  <h2 className="text-xl font-semibold tracking-[-0.01em] text-ink">{s.title}</h2>
+                  <p className="mt-3 text-[15px] leading-relaxed text-neutral-600">{s.body}</p>
+                </section>
+              ))}
             </div>
-          </section>
+          </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </MarketingShell>
   );
 }

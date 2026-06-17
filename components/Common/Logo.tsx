@@ -17,7 +17,7 @@ export default function Logo({
     >
       <span
         className={cn(
-          "text-lg tracking-tight",
+          "text-2xl tracking-tight",
           light ? "text-white" : "text-ink",
         )}
       >
