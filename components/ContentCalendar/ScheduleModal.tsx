@@ -1,7 +1,7 @@
 "use client";
 
-import { Calendar, Clock } from "lucide-react";
-import { useState } from "react";
+import { Calendar, Clock, AlertCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 import Button from "@/components/Common/Button";
 import Modal from "@/components/Common/Modal";
 import Select from "@/components/Common/Select";
@@ -15,6 +15,11 @@ const TIMEZONES = [
   { value: "Asia/Kolkata", label: "India (IST)" },
   { value: "UTC", label: "UTC" },
 ];
+
+interface LinkedInAccount {
+  id: string;
+  profile_name: string;
+}
 
 /** Tomorrow's date as YYYY-MM-DD in local time — the earliest valid schedule date. */
 function tomorrowStr() {
@@ -33,7 +38,7 @@ interface ScheduleModalProps {
   onClose: () => void;
   preview?: string;
   busy?: boolean;
-  onSchedule: (when: { date: string; time: string; tz: string }) => void;
+  onSchedule: (when: { date: string; time: string; tz: string; linkedinAccountId: string }) => void;
 }
 
 export default function ScheduleModal({
@@ -55,6 +60,33 @@ export default function ScheduleModal({
     return "UTC";
   });
   const [error, setError] = useState("");
+  const [accounts, setAccounts] = useState<LinkedInAccount[]>([]);
+  const [selectedAccount, setSelectedAccount] = useState<string>("");
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && accounts.length === 0) {
+      fetchAccounts();
+    }
+  }, [isOpen, accounts.length]);
+
+  async function fetchAccounts() {
+    setLoadingAccounts(true);
+    try {
+      const res = await fetch("/api/profile");
+      const data = await res.json();
+      if (res.ok && data.linkedinAccounts) {
+        setAccounts(data.linkedinAccounts);
+        if (data.linkedinAccounts.length > 0) {
+          setSelectedAccount(data.linkedinAccounts[0].id);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch LinkedIn accounts:", err);
+    } finally {
+      setLoadingAccounts(false);
+    }
+  }
 
   // Human-readable summary shown in the modal so the user can confirm
   // exactly when the post will go out before clicking Schedule.
@@ -69,6 +101,10 @@ export default function ScheduleModal({
       : "";
 
   function handleSchedule() {
+    if (!selectedAccount) {
+      setError("Please connect a LinkedIn account first.");
+      return;
+    }
     if (!date) {
       setError("Please pick a date.");
       return;
@@ -80,7 +116,7 @@ export default function ScheduleModal({
       return;
     }
     setError("");
-    onSchedule({ date, time, tz });
+    onSchedule({ date, time, tz, linkedinAccountId: selectedAccount });
   }
 
   return (
@@ -110,6 +146,34 @@ export default function ScheduleModal({
             {preview}
           </div>
         )}
+
+        {/* LinkedIn Account */}
+        <div>
+          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+            LinkedIn Account
+          </label>
+          {accounts.length === 0 ? (
+            <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-[12px] text-amber-800">
+              <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">No LinkedIn account connected</p>
+                <p className="mt-0.5">Please connect your LinkedIn account in Settings → Integrations first.</p>
+              </div>
+            </div>
+          ) : (
+            <select
+              value={selectedAccount}
+              onChange={(e) => setSelectedAccount(e.target.value)}
+              className="h-10 w-full rounded-md border border-neutral-200 bg-white px-3 text-sm text-ink transition-colors focus:outline-none focus:ring-2 focus:ring-action/40"
+            >
+              {accounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.profile_name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
 
         {/* Date */}
         <div>
