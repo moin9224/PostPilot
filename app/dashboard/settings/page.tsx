@@ -17,13 +17,13 @@ function SectionTitle({
   eyebrow?: string;
 }) {
   return (
-    <div className="mb-5">
+    <div className="mb-6">
       {eyebrow && (
-        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+        <span className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
           {eyebrow}
         </span>
       )}
-      <h3 className="mt-1 text-base font-semibold tracking-[-0.01em] text-ink">
+      <h3 className="mt-2 text-lg font-semibold tracking-[-0.015em] text-ink">
         {children}
       </h3>
     </div>
