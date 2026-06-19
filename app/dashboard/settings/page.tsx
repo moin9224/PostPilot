@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, Linkedin, LogOut, Zap, ArrowRight } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/Common/Button";
 import Card from "@/components/Common/Card";
@@ -30,7 +30,7 @@ function SectionTitle({
   );
 }
 
-export default function SettingsPage() {
+function SettingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [name, setName] = useState("");
@@ -346,5 +346,13 @@ export default function SettingsPage() {
         </Button>
       </Card>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SettingsContent />
+    </Suspense>
   );
 }
