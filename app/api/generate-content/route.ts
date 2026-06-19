@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ok, parseBody, preflight, requireUser, route, ApiError } from "@/lib/api";
 import { generateLinkedInPost } from "@/lib/openai";
+import { generateLinkedInPostWithGemini } from "@/lib/gemini";
 import {
   assertWithinLimit,
   getDailyGenerationUsage,
@@ -35,15 +36,45 @@ export const POST = route(async (request) => {
     assertWithinLimit(usage, 1);
   } catch (err) {
     if (err instanceof ApiError && err.status === 429) {
-      // Return usage info with the error so the frontend can show upgrade modal
       throw new ApiError(429, err.message, { usage });
     }
     throw err;
   }
 
-  const post = await generateLinkedInPost(params);
+  let post;
+  let error: Error | null = null;
 
-  const { data: saved, error } = await supabase
+  // Try Gemini first (free credits)
+  const { data: apiKeys } = await supabase
+    .from("user_api_keys")
+    .select("key")
+    .eq("user_id", user.id)
+    .eq("provider", "gemini");
+
+  if (apiKeys && apiKeys.length > 0) {
+    for (const apiKeyRow of apiKeys) {
+      try {
+        post = await generateLinkedInPostWithGemini(params, apiKeyRow.key);
+        error = null;
+        break;
+      } catch (err) {
+        error = err instanceof Error ? err : new Error("Unknown error");
+        continue;
+      }
+    }
+  }
+
+  // Fallback to OpenAI if Gemini failed or no keys
+  if (!post) {
+    try {
+      post = await generateLinkedInPost(params);
+    } catch (err) {
+      error = err instanceof Error ? err : new Error("All generation methods failed");
+      throw new ApiError(500, error.message);
+    }
+  }
+
+  const { data: saved, error: insertError } = await supabase
     .from("generated_posts")
     .insert({
       user_id: user.id,

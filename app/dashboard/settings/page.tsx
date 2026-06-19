@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 const TABS = [
   { id: "general", label: "General" },
+  { id: "api-keys", label: "API Keys" },
   { id: "billing", label: "Billing" },
   { id: "linkedin", label: "LinkedIn Actions" },
 ];
