@@ -95,7 +95,6 @@ export default function UpgradeModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Upgrade Your Plan"
-      size="lg"
       footer={null}
     >
       <div className="space-y-6">
