@@ -24,6 +24,7 @@ import YoutubeIngest, {
   type VideoMeta,
 } from "@/components/ContentGenerator/YoutubeIngest";
 import ScheduleModal from "@/components/ContentCalendar/ScheduleModal";
+import UpgradeModal from "@/components/Billing/UpgradeModal";
 import type { GeneratedPost } from "@/lib/types";
 import { cn, formatNumber } from "@/lib/utils";
 
@@ -98,6 +99,14 @@ export default function ContentGeneratorPage() {
     { kind: "success" | "error"; text: string } | null
   >(null);
 
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [usageInfo, setUsageInfo] = useState<{
+    plan: string;
+    limit: number;
+    used: number;
+    period: "day" | "week";
+  } | null>(null);
+
   const canSubmit = source === "idea"
     ? topic.trim().length > 0 && topic.length <= 500
     : !!videoMeta;
@@ -131,6 +140,14 @@ export default function ContentGeneratorPage() {
         }),
       });
       const data = await res.json();
+
+      // Handle usage limit exceeded
+      if (res.status === 429) {
+        setUsageInfo(data.usage || { plan: "free", limit: 1, used: 1, period: "week" });
+        setShowUpgrade(true);
+        return;
+      }
+
       if (!res.ok) { alert(data.error || "Failed to generate"); return; }
 
       const generated: GeneratedPost[] = data.posts.map((p: any) => ({
@@ -152,7 +169,7 @@ export default function ContentGeneratorPage() {
     }
   }
 
-  async function handleSchedule(when: { date: string; time: string; tz: string }) {
+  async function handleSchedule(when: { date: string; time: string; tz: string; linkedinAccountId: string }) {
     if (!scheduling) return;
     const scheduledFor = zonedToUtcIso(when.date, when.time, when.tz);
     if (new Date(scheduledFor).getTime() <= Date.now()) {
@@ -162,10 +179,15 @@ export default function ContentGeneratorPage() {
     setScheduleBusy(true);
     setScheduleNotice(null);
     try {
-      const res = await fetch("/api/linkedin/publish", {
+      const res = await fetch("/api/posts/schedule", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: scheduling.text, scheduledFor }),
+        body: JSON.stringify({
+          text: scheduling.text,
+          scheduledFor,
+          linkedinAccountId: when.linkedinAccountId,
+          hashtags: scheduling.hashtags,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -465,6 +487,15 @@ export default function ContentGeneratorPage() {
         busy={scheduleBusy}
         onSchedule={handleSchedule}
       />
+
+      {usageInfo && (
+        <UpgradeModal
+          isOpen={showUpgrade}
+          onClose={() => setShowUpgrade(false)}
+          currentPlan="free"
+          usageInfo={usageInfo}
+        />
+      )}
     </div>
   );
 }

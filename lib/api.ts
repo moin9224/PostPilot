@@ -8,9 +8,12 @@ import { getServerSupabase } from "./supabase-server";
 // ---------------------------------------------------------------------------
 export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  data?: Record<string, unknown>;
+
+  constructor(status: number, message: string, data?: Record<string, unknown>) {
     super(message);
     this.status = status;
+    this.data = data;
   }
 }
 
@@ -27,8 +30,12 @@ export function ok<T>(data: T, status = 200) {
   return NextResponse.json(data, { status, headers: CORS_HEADERS });
 }
 
-export function fail(status: number, message: string) {
-  return NextResponse.json({ error: message }, { status, headers: CORS_HEADERS });
+export function fail(status: number, message: string, data?: Record<string, unknown>) {
+  const response: Record<string, unknown> = { error: message };
+  if (data) {
+    Object.assign(response, data);
+  }
+  return NextResponse.json(response, { status, headers: CORS_HEADERS });
 }
 
 /** Handle CORS preflight. Export as `OPTIONS` from a route if needed. */
@@ -89,7 +96,7 @@ export function route<Ctx>(handler: Handler<Ctx>): Handler<Ctx> {
       return await handler(request, ctx);
     } catch (err) {
       if (err instanceof ApiError) {
-        return fail(err.status, err.message);
+        return fail(err.status, err.message, err.data);
       }
       console.error("[api] Unhandled error:", err);
       return fail(500, "Something went wrong. Please try again.");

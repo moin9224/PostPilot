@@ -1,30 +1,53 @@
 import { z } from "zod";
-import { ok, parseBody, preflight, requireUser, route } from "@/lib/api";
+import { ApiError, ok, parseBody, preflight, requireUser, route } from "@/lib/api";
 
 const Body = z.object({
-  content: z.string().min(1, "Content is required."),
+  text: z.string().min(1, "Post content is required."),
   scheduledFor: z.string().datetime({ message: "scheduledFor must be ISO 8601." }),
-  timezone: z.string().default("UTC"),
-  postId: z.string().uuid().optional(),
+  linkedinAccountId: z.string().uuid("Must specify a LinkedIn account."),
+  hashtags: z.array(z.string()).optional(),
 });
 
 export const OPTIONS = () => preflight();
 
 export const POST = route(async (request) => {
   const { user, supabase } = await requireUser();
-  const { content, scheduledFor, timezone, postId } = await parseBody(
+  const { text, scheduledFor, linkedinAccountId, hashtags } = await parseBody(
     request,
     Body,
   );
 
+  // Verify the LinkedIn account exists, belongs to the user, and is active
+  const { data: account, error: accountError } = await supabase
+    .from("user_linkedin_accounts")
+    .select("id, is_active")
+    .eq("id", linkedinAccountId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (accountError || !account) {
+    throw new ApiError(404, "LinkedIn account not found or not active.");
+  }
+
+  if (!account.is_active) {
+    throw new ApiError(400, "LinkedIn account is not active. Please reconnect.");
+  }
+
+  // Verify the scheduled time is in the future
+  const scheduledTime = new Date(scheduledFor).getTime();
+  if (scheduledTime <= Date.now()) {
+    throw new ApiError(400, "Scheduled time must be in the future.");
+  }
+
+  // Insert into scheduled_posts_v2 for the cron worker to pick up
   const { data, error } = await supabase
-    .from("scheduled_posts")
+    .from("scheduled_posts_v2")
     .insert({
       user_id: user.id,
-      post_id: postId ?? null,
-      content,
+      linkedin_account_id: linkedinAccountId,
+      text,
+      hashtags: hashtags ?? null,
       scheduled_for: scheduledFor,
-      timezone,
       status: "scheduled",
     })
     .select("id, scheduled_for")
@@ -32,14 +55,9 @@ export const POST = route(async (request) => {
 
   if (error) throw new Error(error.message);
 
-  // Keep the source post's status in sync if one was provided.
-  if (postId) {
-    await supabase
-      .from("generated_posts")
-      .update({ status: "scheduled", scheduled_for: scheduledFor })
-      .eq("id", postId)
-      .eq("user_id", user.id);
-  }
-
-  return ok({ postId: data.id, scheduledFor: data.scheduled_for }, 201);
+  return ok({
+    postId: data.id,
+    scheduledFor: data.scheduled_for,
+    message: "Post scheduled successfully. It will be published at the scheduled time."
+  }, 201);
 });

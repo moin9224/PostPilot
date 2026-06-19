@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ok, parseBody, preflight, requireUser, route } from "@/lib/api";
+import { ok, parseBody, preflight, requireUser, route, ApiError } from "@/lib/api";
 import { generateLinkedInPost } from "@/lib/openai";
 import {
   assertWithinLimit,
@@ -13,6 +13,7 @@ const Body = z.object({
   industry: z.string().min(1),
   audience: z.string().min(1),
   style: z.enum(["short", "medium", "long"]),
+  format: z.string().optional(),
 });
 
 export const OPTIONS = () => preflight();
@@ -29,7 +30,16 @@ export const POST = route(async (request) => {
 
   const plan = (profile?.subscription_plan ?? "free") as SubscriptionPlan;
   const usage = await getDailyGenerationUsage(supabase, user.id, plan);
-  assertWithinLimit(usage, 1);
+
+  try {
+    assertWithinLimit(usage, 1);
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 429) {
+      // Return usage info with the error so the frontend can show upgrade modal
+      throw new ApiError(429, err.message, { usage });
+    }
+    throw err;
+  }
 
   const post = await generateLinkedInPost(params);
 

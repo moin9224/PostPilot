@@ -1,12 +1,13 @@
 "use client";
 
-import { CheckCircle2, Linkedin, LogOut } from "lucide-react";
+import { CheckCircle2, Linkedin, LogOut, Zap, ArrowRight } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/Common/Button";
 import Card from "@/components/Common/Card";
 import Input from "@/components/Common/Input";
 import { createBrowserClient } from "@supabase/ssr";
+import { cn } from "@/lib/utils";
 
 function SectionTitle({
   children,
@@ -31,12 +32,18 @@ function SectionTitle({
 
 export default function SettingsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [plan, setPlan] = useState("Free");
+  const [plan, setPlan] = useState("free");
   const [linkedinAccount, setLinkedinAccount] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [upgrading, setUpgrading] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -59,7 +66,7 @@ export default function SettingsPage() {
         .single();
 
       setName(profile?.full_name || "");
-      setPlan(profile?.subscription_plan || "Free");
+      setPlan(profile?.subscription_plan || "free");
 
       const { data: linkedin } = await supabase
         .from("user_linkedin_accounts")
@@ -70,8 +77,23 @@ export default function SettingsPage() {
 
       setLinkedinAccount(linkedin);
       setLoading(false);
+
+      // Show upgrade success/cancel notifications
+      if (searchParams.get("upgraded") === "1") {
+        setNotification({
+          type: "success",
+          message: "🎉 Welcome to your new plan! All features are now unlocked.",
+        });
+        setTimeout(() => setNotification(null), 5000);
+      } else if (searchParams.get("canceled") === "1") {
+        setNotification({
+          type: "error",
+          message: "Upgrade canceled. You're still on the Free plan.",
+        });
+        setTimeout(() => setNotification(null), 5000);
+      }
     })();
-  }, []);
+  }, [searchParams]);
 
   const handleSave = useCallback(async () => {
     setSaving(true);
@@ -99,6 +121,33 @@ export default function SettingsPage() {
       .update({ is_active: false })
       .eq("user_id", user.id);
     setLinkedinAccount(null);
+  }, []);
+
+  const handleUpgrade = useCallback(async (targetPlan: string) => {
+    setUpgrading(true);
+    try {
+      const res = await fetch("/api/billing/upgrade", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: targetPlan }),
+      });
+      const data = await res.json();
+      if (res.ok && data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        setNotification({
+          type: "error",
+          message: data.error || "Failed to start checkout",
+        });
+        setUpgrading(false);
+      }
+    } catch (err) {
+      setNotification({
+        type: "error",
+        message: "Network error. Try again.",
+      });
+      setUpgrading(false);
+    }
   }, []);
 
   if (loading) {
@@ -189,16 +238,102 @@ export default function SettingsPage() {
         )}
       </Card>
 
+      {/* Notification */}
+      {notification && (
+        <div
+          className={cn(
+            "rounded-lg px-4 py-3 text-sm font-medium",
+            notification.type === "success"
+              ? "bg-emerald-50 text-emerald-800"
+              : "bg-red-50 text-red-800"
+          )}
+        >
+          {notification.message}
+        </div>
+      )}
+
       {/* Plan */}
       <Card>
-        <SectionTitle>Plan</SectionTitle>
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-neutral-50 p-4">
-          <div>
-            <p className="text-sm font-medium text-ink capitalize">{plan} plan</p>
-            <p className="text-xs text-neutral-500">
-              Manage your subscription.
-            </p>
+        <SectionTitle>Subscription Plan</SectionTitle>
+        <div className="space-y-4">
+          {/* Current Plan */}
+          <div className="rounded-lg border-2 border-blue-500 bg-blue-50 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-ink capitalize flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-blue-600" />
+                  {plan === "free" ? "Free" : plan.charAt(0).toUpperCase() + plan.slice(1)} Plan
+                </p>
+                <p className="mt-1 text-sm text-neutral-600">
+                  {plan === "free"
+                    ? "1 post per week · Limited features"
+                    : plan === "starter"
+                    ? "$29/month · 50 posts per day · Full features"
+                    : plan === "pro"
+                    ? "$79/month · 500 posts per day · All features"
+                    : "$299/month · Unlimited posts · Priority support"}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-ink">
+                  {plan === "free" ? "Free" : plan === "starter" ? "$29" : plan === "pro" ? "$79" : "$299"}
+                </p>
+                {plan !== "free" && <p className="text-xs text-neutral-500">/month</p>}
+              </div>
+            </div>
           </div>
+
+          {/* Upgrade Options */}
+          {plan === "free" && (
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-neutral-700">Upgrade to unlock unlimited generation</p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <button
+                  onClick={() => handleUpgrade("starter")}
+                  disabled={upgrading}
+                  className="flex items-center justify-between rounded-lg border-2 border-blue-200 bg-white p-3 hover:bg-blue-50 disabled:opacity-50"
+                >
+                  <div className="text-left">
+                    <p className="font-semibold text-sm text-ink">Starter</p>
+                    <p className="text-xs text-neutral-500">$29/mo</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-blue-600" />
+                </button>
+                <button
+                  onClick={() => handleUpgrade("pro")}
+                  disabled={upgrading}
+                  className="flex items-center justify-between rounded-lg border-2 border-purple-200 bg-purple-50 p-3 hover:bg-purple-100 disabled:opacity-50 ring-2 ring-purple-300"
+                >
+                  <div className="text-left">
+                    <p className="font-semibold text-sm text-ink">Pro</p>
+                    <p className="text-xs text-neutral-500">$79/mo</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-purple-600" />
+                </button>
+                <button
+                  onClick={() => handleUpgrade("agency")}
+                  disabled={upgrading}
+                  className="flex items-center justify-between rounded-lg border-2 border-amber-200 bg-white p-3 hover:bg-amber-50 disabled:opacity-50"
+                >
+                  <div className="text-left">
+                    <p className="font-semibold text-sm text-ink">Agency</p>
+                    <p className="text-xs text-neutral-500">$299/mo</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-amber-600" />
+                </button>
+              </div>
+              {upgrading && <p className="text-xs text-neutral-500 text-center">Redirecting to Stripe...</p>}
+            </div>
+          )}
+
+          {plan !== "free" && (
+            <div className="rounded-lg bg-emerald-50 p-4 border border-emerald-200">
+              <p className="text-sm font-medium text-emerald-900">✓ Thank you for upgrading!</p>
+              <p className="text-xs text-emerald-700 mt-1">
+                You can manage your subscription, update payment method, or cancel anytime on Stripe.
+              </p>
+            </div>
+          )}
         </div>
       </Card>
 
