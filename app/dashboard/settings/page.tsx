@@ -325,28 +325,34 @@ function SettingsContent() {
                   <button
                     onClick={() => handleUpgrade("starter")}
                     disabled={upgrading}
-                    className="relative group rounded-xl border-2 border-blue-400 bg-white p-6 text-left hover:shadow-lg hover:border-blue-500 hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="rounded-lg border border-neutral-300 bg-white p-6 text-left hover:border-neutral-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <p className="text-lg font-bold text-ink mb-2">Starter</p>
-                    <p className="text-4xl font-bold text-blue-600 mb-1">$29</p>
-                    <p className="text-sm text-neutral-500 mb-4">50 posts/day</p>
-                    <div className="absolute top-6 right-6 text-blue-600 group-hover:translate-x-1 transition-transform">
-                      <ArrowRight className="h-5 w-5" />
-                    </div>
+                    <p className="font-semibold text-ink mb-3">Starter</p>
+                    <p className="text-2xl font-bold text-ink mb-0.5">$29</p>
+                    <p className="text-xs text-neutral-500 mb-4">/month</p>
+                    <p className="text-sm text-neutral-600 mb-4">50 posts/day</p>
+                    <button className="w-full px-4 py-2 rounded-lg bg-ink text-white text-sm font-medium hover:bg-neutral-800 transition-colors">
+                      Choose plan
+                    </button>
                   </button>
 
                   {/* Pro (Highlighted) */}
                   <button
                     onClick={() => handleUpgrade("pro")}
                     disabled={upgrading}
-                    className="relative group rounded-xl border-2 border-purple-500 bg-gradient-to-br from-purple-50 via-purple-50 to-purple-100 p-6 text-left hover:shadow-2xl hover:border-purple-600 hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                    className="rounded-lg border border-neutral-300 bg-white text-left hover:border-neutral-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
                   >
-                    <div className="absolute -top-4 left-6 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">Most Popular</div>
-                    <p className="text-lg font-bold text-ink mb-2 mt-2">Pro</p>
-                    <p className="text-4xl font-bold text-purple-600 mb-1">$79</p>
-                    <p className="text-sm text-neutral-500 mb-4">500 posts/day</p>
-                    <div className="absolute top-6 right-6 text-purple-600 group-hover:translate-x-1 transition-transform">
-                      <ArrowRight className="h-5 w-5" />
+                    <div className="bg-amber-600 text-white text-xs font-semibold text-center py-2">
+                      Most Popular
+                    </div>
+                    <div className="p-6">
+                      <p className="font-semibold text-ink mb-3">Pro</p>
+                      <p className="text-2xl font-bold text-ink mb-0.5">$79</p>
+                      <p className="text-xs text-neutral-500 mb-4">/month</p>
+                      <p className="text-sm text-neutral-600 mb-4">500 posts/day</p>
+                      <button className="w-full px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 transition-colors">
+                        Choose plan
+                      </button>
                     </div>
                   </button>
 
@@ -354,14 +360,15 @@ function SettingsContent() {
                   <button
                     onClick={() => handleUpgrade("agency")}
                     disabled={upgrading}
-                    className="relative group rounded-xl border-2 border-amber-400 bg-white p-6 text-left hover:shadow-lg hover:border-amber-500 hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="rounded-lg border border-neutral-300 bg-white p-6 text-left hover:border-neutral-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <p className="text-lg font-bold text-ink mb-2">Agency</p>
-                    <p className="text-4xl font-bold text-amber-600 mb-1">$299</p>
-                    <p className="text-sm text-neutral-500 mb-4">Unlimited</p>
-                    <div className="absolute top-6 right-6 text-amber-600 group-hover:translate-x-1 transition-transform">
-                      <ArrowRight className="h-5 w-5" />
-                    </div>
+                    <p className="font-semibold text-ink mb-3">Agency</p>
+                    <p className="text-2xl font-bold text-ink mb-0.5">$299</p>
+                    <p className="text-xs text-neutral-500 mb-4">/month</p>
+                    <p className="text-sm text-neutral-600 mb-4">Unlimited</p>
+                    <button className="w-full px-4 py-2 rounded-lg bg-ink text-white text-sm font-medium hover:bg-neutral-800 transition-colors">
+                      Choose plan
+                    </button>
                   </button>
                 </div>
               </div>
