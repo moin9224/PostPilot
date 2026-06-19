@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Linkedin, LogOut, Zap, ArrowRight } from "lucide-react";
+import { CheckCircle2, Linkedin, LogOut, Zap, ArrowRight, Key, Trash2, Plus, Eye, EyeOff } from "lucide-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
@@ -24,6 +24,10 @@ function SettingsContent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
+  const [newGeminiKey, setNewGeminiKey] = useState("");
+  const [geminiKeys, setGeminiKeys] = useState<Array<{ id: string; key: string; created_at: string }>>([]);
+  const [showKeyValue, setShowKeyValue] = useState<Record<string, boolean>>({});
+  const [addingKey, setAddingKey] = useState(false);
   const [notification, setNotification] = useState<{
     type: "success" | "error";
     message: string;
@@ -60,6 +64,18 @@ function SettingsContent() {
         .maybeSingle();
 
       setLinkedinAccount(linkedin);
+
+      // Load Gemini API keys
+      const { data: keys } = await supabase
+        .from("user_api_keys")
+        .select("id, key, created_at")
+        .eq("user_id", user.id)
+        .eq("provider", "gemini");
+
+      if (keys) {
+        setGeminiKeys(keys);
+      }
+
       setLoading(false);
 
       if (searchParams.get("upgraded") === "1") {
@@ -77,6 +93,75 @@ function SettingsContent() {
       }
     })();
   }, [searchParams]);
+
+  const handleAddGeminiKey = useCallback(async () => {
+    if (!newGeminiKey.trim()) {
+      setNotification({
+        type: "error",
+        message: "Please enter a valid API key",
+      });
+      return;
+    }
+
+    setAddingKey(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("user_api_keys")
+        .insert({
+          user_id: user.id,
+          provider: "gemini",
+          key: newGeminiKey,
+        })
+        .select("id, key, created_at");
+
+      if (error) throw error;
+
+      if (data) {
+        setGeminiKeys([...geminiKeys, data[0]]);
+        setNewGeminiKey("");
+        setNotification({
+          type: "success",
+          message: "Gemini API key added successfully!",
+        });
+        setTimeout(() => setNotification(null), 3000);
+      }
+    } catch (err) {
+      setNotification({
+        type: "error",
+        message: "Failed to add API key",
+      });
+    } finally {
+      setAddingKey(false);
+    }
+  }, [newGeminiKey, geminiKeys]);
+
+  const handleDeleteGeminiKey = useCallback(async (keyId: string) => {
+    if (!confirm("Delete this API key?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("user_api_keys")
+        .delete()
+        .eq("id", keyId);
+
+      if (error) throw error;
+
+      setGeminiKeys(geminiKeys.filter((k) => k.id !== keyId));
+      setNotification({
+        type: "success",
+        message: "API key deleted",
+      });
+      setTimeout(() => setNotification(null), 3000);
+    } catch (err) {
+      setNotification({
+        type: "error",
+        message: "Failed to delete API key",
+      });
+    }
+  }, [geminiKeys]);
 
   const handleSave = useCallback(async () => {
     setSaving(true);
@@ -230,6 +315,86 @@ function SettingsContent() {
             >
               {saving ? "Saving..." : "Save changes"}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* API Keys Tab */}
+      {activeTab === "api-keys" && (
+        <div className="space-y-6">
+          <div className="flex items-start justify-between border-b border-neutral-100 pb-6">
+            <div className="max-w-sm">
+              <p className="font-semibold text-ink">Gemini API Keys</p>
+              <p className="text-sm text-neutral-600 mt-0.5">Add your Google Gemini API keys for free content generation with free credits</p>
+            </div>
+            <div className="flex-1 max-w-sm text-right">
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <input
+                    type="password"
+                    value={newGeminiKey}
+                    onChange={(e) => setNewGeminiKey(e.target.value)}
+                    placeholder="Paste your Gemini API key..."
+                    className="flex-1 px-3 py-2 rounded-lg border border-neutral-300 bg-white text-ink text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <button
+                    onClick={handleAddGeminiKey}
+                    disabled={addingKey || !newGeminiKey.trim()}
+                    className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add
+                  </button>
+                </div>
+
+                {geminiKeys.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-neutral-600 uppercase">Active Keys ({geminiKeys.length})</p>
+                    {geminiKeys.map((keyItem) => (
+                      <div key={keyItem.id} className="flex items-center gap-2 p-3 rounded-lg bg-neutral-50 border border-neutral-200">
+                        <Key className="h-4 w-4 text-neutral-400 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-ink truncate">
+                            {showKeyValue[keyItem.id] ? keyItem.key : `${keyItem.key.slice(0, 8)}...${keyItem.key.slice(-4)}`}
+                          </p>
+                          <p className="text-xs text-neutral-500">
+                            Added {new Date(keyItem.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setShowKeyValue({ ...showKeyValue, [keyItem.id]: !showKeyValue[keyItem.id] })}
+                          className="p-1.5 hover:bg-neutral-200 rounded transition-colors"
+                          title={showKeyValue[keyItem.id] ? "Hide" : "Show"}
+                        >
+                          {showKeyValue[keyItem.id] ? (
+                            <EyeOff className="h-4 w-4 text-neutral-500" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-neutral-500" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteGeminiKey(keyItem.id)}
+                          className="p-1.5 hover:bg-red-100 rounded transition-colors text-red-600"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
+            <p className="text-sm font-medium text-blue-900">💡 How to get a Gemini API key:</p>
+            <ol className="text-sm text-blue-800 mt-2 space-y-1 list-decimal list-inside">
+              <li>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-700">Google AI Studio</a></li>
+              <li>Click "Get API Key" and create a new key</li>
+              <li>Copy the key and paste it above</li>
+              <li>Free tier includes generous monthly limits!</li>
+            </ol>
           </div>
         </div>
       )}
