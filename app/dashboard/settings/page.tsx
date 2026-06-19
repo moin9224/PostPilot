@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Linkedin, LogOut, Zap } from "lucide-react";
+import { CheckCircle2, Linkedin, LogOut, Zap, ArrowRight } from "lucide-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
