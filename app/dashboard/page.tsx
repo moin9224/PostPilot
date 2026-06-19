@@ -171,9 +171,11 @@ export default async function DashboardHome() {
                 <h2 className="text-sm font-semibold text-ink">High-performing creators</h2>
                 <p className="mt-0.5 text-xs text-neutral-500">Repurpose their best content in your voice</p>
               </div>
-              <button className="inline-flex items-center gap-1.5 rounded-md border border-neutral-200 px-3 py-1.5 text-[12px] font-medium text-neutral-600 transition-colors hover:bg-neutral-50">
-                <RefreshCw className="h-3 w-3" /> New creators
-              </button>
+              <Link href="/dashboard/content-generator">
+                <button className="inline-flex items-center gap-1.5 rounded-md border border-neutral-200 px-3 py-1.5 text-[12px] font-medium text-neutral-600 transition-colors hover:bg-neutral-50">
+                  <RefreshCw className="h-3 w-3" /> New creators
+                </button>
+              </Link>
             </div>
             <div className="grid grid-cols-1 gap-px bg-neutral-100 md:grid-cols-3">
               {topCreators.map((c, i) => (
@@ -321,7 +323,11 @@ export default async function DashboardHome() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-[13px] font-semibold text-ink">{p.name}</p>
-                        <button className="flex-shrink-0 rounded-md border border-neutral-200 p-1 text-neutral-400 transition-colors hover:border-brand hover:text-brand">
+                        <button
+                          onClick={() => window.open('https://linkedin.com', '_blank')}
+                          className="flex-shrink-0 rounded-md border border-neutral-200 p-1 text-neutral-400 transition-colors hover:border-brand hover:text-brand hover:bg-brand/5"
+                          title="Open on LinkedIn"
+                        >
                           <MessageCircle className="h-3.5 w-3.5" />
                         </button>
                       </div>
@@ -342,9 +348,11 @@ export default async function DashboardHome() {
               </p>
               <div className="mt-3 flex items-center justify-between">
                 <p className="text-[13px] text-neutral-400">No pending replies</p>
-                <button className="inline-flex items-center gap-1.5 rounded-md bg-brand/10 px-3 py-1.5 text-[12px] font-medium text-brand transition-colors hover:bg-brand/20">
-                  <Send className="h-3 w-3" /> Post now
-                </button>
+                <Link href="/dashboard/content-generator">
+                  <button className="inline-flex items-center gap-1.5 rounded-md bg-brand/10 px-3 py-1.5 text-[12px] font-medium text-brand transition-colors hover:bg-brand/20">
+                    <Send className="h-3 w-3" /> Post now
+                  </button>
+                </Link>
               </div>
             </div>
           </div>
