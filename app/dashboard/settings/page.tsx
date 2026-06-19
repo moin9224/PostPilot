@@ -325,37 +325,43 @@ function SettingsContent() {
                   <button
                     onClick={() => handleUpgrade("starter")}
                     disabled={upgrading}
-                    className="p-4 rounded-lg border-2 border-blue-300 bg-white hover:shadow-md transition-all disabled:opacity-50"
+                    className="relative group rounded-lg border-2 border-blue-300 bg-white p-4 text-left hover:shadow-md hover:border-blue-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <p className="font-semibold text-ink">Starter</p>
-                    <p className="text-2xl font-bold text-blue-600 my-2">$29</p>
-                    <p className="text-xs text-neutral-600 mb-3">50 posts/day</p>
-                    <p className="text-xs text-blue-600 font-medium">Choose plan →</p>
+                    <p className="font-semibold text-ink mb-1">Starter</p>
+                    <p className="text-2xl font-bold text-blue-600 mb-2">$29</p>
+                    <p className="text-xs text-neutral-600">50 posts/day</p>
+                    <div className="absolute top-3 right-3 text-blue-600 group-hover:translate-x-1 transition-transform">
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
                   </button>
 
-                  {/* Pro */}
+                  {/* Pro (Highlighted) */}
                   <button
                     onClick={() => handleUpgrade("pro")}
                     disabled={upgrading}
-                    className="p-4 rounded-lg border-2 border-purple-400 bg-purple-50 hover:shadow-md transition-all ring-2 ring-purple-300 disabled:opacity-50 relative"
+                    className="relative group rounded-lg border-2 border-purple-400 bg-gradient-to-br from-purple-50 to-purple-100 p-4 text-left hover:shadow-lg hover:border-purple-500 transition-all ring-2 ring-purple-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <div className="absolute -top-3 left-4 bg-purple-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">Popular</div>
-                    <p className="font-semibold text-ink mt-2">Pro</p>
-                    <p className="text-2xl font-bold text-purple-600 my-2">$79</p>
-                    <p className="text-xs text-neutral-600 mb-3">500 posts/day</p>
-                    <p className="text-xs text-purple-600 font-medium">Choose plan →</p>
+                    <div className="absolute -top-3 left-4 bg-purple-600 text-white text-xs font-semibold px-2 py-1 rounded-full">Most Popular</div>
+                    <p className="font-semibold text-ink mb-1 mt-2">Pro</p>
+                    <p className="text-2xl font-bold text-purple-600 mb-2">$79</p>
+                    <p className="text-xs text-neutral-600">500 posts/day</p>
+                    <div className="absolute top-4 right-3 text-purple-600 group-hover:translate-x-1 transition-transform">
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
                   </button>
 
                   {/* Agency */}
                   <button
                     onClick={() => handleUpgrade("agency")}
                     disabled={upgrading}
-                    className="p-4 rounded-lg border-2 border-amber-300 bg-white hover:shadow-md transition-all disabled:opacity-50"
+                    className="relative group rounded-lg border-2 border-amber-300 bg-white p-4 text-left hover:shadow-md hover:border-amber-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <p className="font-semibold text-ink">Agency</p>
-                    <p className="text-2xl font-bold text-amber-600 my-2">$299</p>
-                    <p className="text-xs text-neutral-600 mb-3">Unlimited</p>
-                    <p className="text-xs text-amber-600 font-medium">Choose plan →</p>
+                    <p className="font-semibold text-ink mb-1">Agency</p>
+                    <p className="text-2xl font-bold text-amber-600 mb-2">$299</p>
+                    <p className="text-xs text-neutral-600">Unlimited</p>
+                    <div className="absolute top-3 right-3 text-amber-600 group-hover:translate-x-1 transition-transform">
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
                   </button>
                 </div>
               </div>
