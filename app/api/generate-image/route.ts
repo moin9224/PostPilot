@@ -1,45 +1,49 @@
-import OpenAI from "openai";
-import { NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { z } from "zod";
+import { ok, parseBody, preflight, requireUser, route, ApiError } from "@/lib/api";
+import { generatePostImage } from "@/lib/image-generation";
 
-export async function POST(request: Request) {
+const Body = z.object({
+  prompt: z.string().min(10, "Prompt must be at least 10 characters."),
+  style: z.enum(["realistic", "artistic", "abstract", "minimalist", "professional"]).optional(),
+});
+
+export const OPTIONS = () => preflight();
+
+export const POST = route(async (request) => {
+  const { user, supabase } = await requireUser();
+  const params = await parseBody(request, Body);
+
   try {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } },
-    );
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const { prompt } = await request.json();
-    if (!prompt?.trim()) return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
-
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json({ error: "Image generation is not configured." }, { status: 500 });
-    }
-
-    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-    const enhancedPrompt = `Professional LinkedIn post image: ${prompt}. Clean, modern, business-appropriate, high quality, no text overlays.`;
-
-    const response = await client.images.generate({
-      model: "dall-e-3",
-      prompt: enhancedPrompt,
-      n: 1,
-      size: "1024x1024",
-      quality: "standard",
-      response_format: "url",
+    const image = await generatePostImage({
+      prompt: params.prompt,
+      style: params.style || "professional",
     });
 
-    const imageUrl = response.data?.[0]?.url;
-    if (!imageUrl) return NextResponse.json({ error: "No image returned." }, { status: 500 });
+    // Save to database for later use
+    const { data: saved, error } = await supabase
+      .from("generated_images")
+      .insert({
+        user_id: user.id,
+        prompt: image.prompt,
+        image_url: image.url,
+        style: params.style || "professional",
+      })
+      .select("id, image_url, prompt, created_at");
 
-    return NextResponse.json({ url: imageUrl });
-  } catch (err: any) {
-    const msg = err?.error?.message ?? err?.message ?? "Image generation failed.";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    if (error) {
+      console.error("Database error:", error);
+      throw new ApiError(500, "Failed to save image");
+    }
+
+    return ok({
+      id: saved?.[0]?.id,
+      url: image.url,
+      prompt: image.prompt,
+      style: params.style || "professional",
+      createdAt: image.generatedAt,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to generate image";
+    throw new ApiError(500, message);
   }
-}
+});
